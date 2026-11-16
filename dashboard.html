@@ -89,7 +89,7 @@ const sb=window.vercelBankClient;
   if(profileError) throw profileError;
   if(accountsError) throw accountsError;
   const fullName=[profile?.first_name,profile?.middle_name,profile?.last_name].filter(Boolean).join(" ").trim()||user.user_metadata?.full_name||user.email?.split("@")[0]||"Customer";
-  const initials=fullName.split(/\\s+/).map(x=>x[0]).join("").slice(0,2).toUpperCase()||"U";
+  const initials=fullName.split(" ").filter(Boolean).map(x=>x[0]).join("").slice(0,2).toUpperCase()||"U";
   document.getElementById("welcome").textContent="Welcome back, "+fullName+".";
   document.getElementById("topName").textContent=fullName;
   document.getElementById("profileName").textContent=fullName;
