@@ -301,7 +301,7 @@ async function renderOverviewActivity(){
  if(!rows||!rows.length){box.innerHTML='<div class="empty"><div class="empty-icon">↗</div><strong>No activity yet</strong><p>When you send or receive a transfer, it will appear here.</p></div>';return;}
  box.innerHTML=rows.map(row=>{
   const outgoing=row.transaction_type==="debit"||(row.transaction_type!=="credit"&&row.sender_user_id===currentUserId);
-  const title=row.transaction_type==="debit"?"Debit":row.transaction_type==="credit"?"Credit":(outgoing?"Transfer sent":"Transfer received");
+  const activityKind=row.transaction_type==="debit"?"Debit":row.transaction_type==="credit"?"Credit":(outgoing?"Transfer sent":"Transfer received");
   const money=new Intl.NumberFormat("en-US",{style:"currency",currency:row.currency_code||"USD"}).format(Number(row.amount||0));
   const date=new Intl.DateTimeFormat("en-US",{month:"short",day:"numeric",year:"numeric"}).format(new Date(row.created_at));
   const title=(row.description|| (outgoing?"Money sent":"Money received")).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
