@@ -181,7 +181,7 @@ let currentAuthUser=null;
   toast("We couldn't load your account details. Please refresh.");
  }
 })();
-document.getElementById("backBtn").addEventListener("click",()=>{if(history.length>1)history.back();else location.href="index.html"});
+
 let balancesHidden=false;
 function setBalancesHidden(hidden){
  balancesHidden=hidden;
@@ -276,7 +276,7 @@ function renderMyProfile(){
  const panel=document.getElementById("subPanel");
  const esc=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
  const fullName=[customerProfile.first_name,customerProfile.middle_name,customerProfile.last_name].filter(Boolean).join(" ")||"Your profile";
- const initials=fullName.split(/\\s+/).filter(Boolean).map(v=>v[0]).join("").slice(0,2).toUpperCase()||"U";
+ const initials=fullName.split(/\s+/).filter(Boolean).map(v=>v[0]).join("").slice(0,2).toUpperCase()||"U";
  const emailVerified=!!currentAuthUser?.email_confirmed_at;
  panel.innerHTML='<div class="profile-workspace">'+
  '<section class="profile-hero"><div class="profile-avatar-large" id="profileAvatarPreview">'+esc(initials)+'</div><div class="profile-hero-copy"><span class="profile-kicker">PERSONAL BANKING PROFILE</span><h3>'+esc(fullName)+'</h3><p>'+esc(currentUserEmail)+'</p><div class="profile-photo-actions"><label class="profile-photo-button" for="profilePhotoInput">Change photo</label><input id="profilePhotoInput" type="file" accept="image/jpeg,image/png,image/webp" hidden><button type="button" class="profile-photo-remove" id="removeProfilePhoto">Remove photo</button></div></div><span class="profile-active-pill">● Account active</span></section>'+
