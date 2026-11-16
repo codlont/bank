@@ -22,4 +22,25 @@
 <section class="cta" id="online"><h2>Your next chapter starts here.</h2><p>Your banking experience starts here.</p><a class="btn" href="checking.html">Explore our services</a></section></main>
 <footer id="support"><div class="footer-grid"><div><a class="brand" href="#" style="color:#fff"><span class="mark"><span>V</span></span> VERCEL BANK</a><p>A welcoming banking experience, designed around you.</p></div><div><h4>Explore</h4><a href="checking.html">Checking</a><a href="savings.html">Savings</a><a href="credit-cards.html">Credit cards</a><a href="loans.html">Loans</a></div><div><h4>Resources</h4><a href="security.html">Security center</a><a href="support.html">Contact support</a><a href="locations.html">Locations</a></div><div id="locations"><h4>Connect</h4><a href="support.html">Help center</a><a href="about.html">About Vercel Bank</a></div></div><div class="copyright">© 2026 Vercel Bank. All rights reserved.</div></footer>
 <script>document.querySelectorAll('.mobile-links a').forEach(a=>a.addEventListener('click',()=>document.querySelector('.mobile-links').classList.remove('open')));</script>
+
+<script>
+(function removeTopLaunchNotice(){
+ const pattern=/(pre.?launch|relaunch|launching soon|coming soon)/i;
+ function clean(){
+  const nodes=[...document.body.querySelectorAll('body *')].reverse();
+  for(const el of nodes){
+   if(!el.isConnected || el.matches('script,style,header,nav,main,footer')) continue;
+   const rect=el.getBoundingClientRect();
+   if(rect.top>180 || rect.height>180 || rect.height===0) continue;
+   const text=(el.innerText||el.textContent||'').trim();
+   if(text.length>0 && text.length<600 && pattern.test(text)){
+    const childMatch=[...el.children].some(child=>pattern.test((child.innerText||child.textContent||'').trim()));
+    if(!childMatch) el.remove();
+   }
+  }
+ }
+ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',clean); else clean();
+ new MutationObserver(clean).observe(document.documentElement,{childList:true,subtree:true});
+})();
+</script>
 </body></html>
