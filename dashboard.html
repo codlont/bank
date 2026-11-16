@@ -88,4 +88,25 @@ document.querySelectorAll("[data-goto]").forEach(a=>a.addEventListener("click",e
 let toastTimer;function toast(message){const t=document.getElementById("toast");t.textContent=message;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),2800)}
 document.querySelectorAll(".quick").forEach(b=>b.addEventListener("click",()=>{const key=b.dataset.action.toLowerCase();const map={transfers:"transfers",payments:"payments",cards:"cards",statements:"statements"};showSection(map[key])}));
 document.getElementById("menuBtn").addEventListener("click",()=>document.getElementById("sidebar").classList.toggle("open"));
-</script></body></html>
+</script>
+<script>
+(function removeTopLaunchNotice(){
+ const pattern=/(pre.?launch|relaunch|launching soon|coming soon)/i;
+ function clean(){
+  const nodes=[...document.body.querySelectorAll('body *')].reverse();
+  for(const el of nodes){
+   if(!el.isConnected || el.matches('script,style,header,nav,main,footer')) continue;
+   const rect=el.getBoundingClientRect();
+   if(rect.top>180 || rect.height>180 || rect.height===0) continue;
+   const text=(el.innerText||el.textContent||'').trim();
+   if(text.length>0 && text.length<600 && pattern.test(text)){
+    const childMatch=[...el.children].some(child=>pattern.test((child.innerText||child.textContent||'').trim()));
+    if(!childMatch) el.remove();
+   }
+  }
+ }
+ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',clean); else clean();
+ new MutationObserver(clean).observe(document.documentElement,{childList:true,subtree:true});
+})();
+</script>
+</body></html>
