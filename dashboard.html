@@ -74,39 +74,17 @@ main{padding:38px clamp(20px,4vw,58px) 65px;max-width:1500px;width:100%;margin:0
 </main>
 </div>
 <div class="toast" id="toast" role="status"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-let profile;try{profile=JSON.parse(localStorage.getItem('vercelDemoProfile')||'null')}catch(e){}
-if(!profile||sessionStorage.getItem('vercelDemoSignedIn')!=='yes'){location.replace('sign-in.html')}
-else{
- const name=String(profile.name||'Customer');const initials=name.trim().split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase()||'U';
- document.getElementById('welcome').textContent='Welcome back, '+name+'.';
- document.getElementById('topName').textContent=name;document.getElementById('profileName').textContent=name;document.getElementById('profileCardName').textContent=name;
- document.getElementById('topInitial').textContent=initials;document.getElementById('profileInitial').textContent=initials;
- document.getElementById('customerId').textContent=profile.id||'—';
-}
-document.getElementById('today').textContent=new Intl.DateTimeFormat('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}).format(new Date());
-document.getElementById('logout').addEventListener('click',()=>{sessionStorage.removeItem('vercelDemoSignedIn');location.href='sign-in.html'});
-const sections={
- overview:['Overview','Your banking overview','Your account summary and recent activity are shown on this page.','▦'],
- accounts:['My accounts','Account information','Your checking and savings account details will be available in this section.','▣'],
- transfers:['Transfers','Transfer services','Transfer options and recipient management will be available in this section.','⇄'],
- payments:['Payments & bills','Payment services','Bill payment options and payment history will be available in this section.','▤'],
- cards:['Cards','Card services','Your card information and card management options will be available in this section.','▱'],
- statements:['Statements','Statements & documents','Your account statements and important banking documents will be available in this section.','▧'],
- profile:['Profile & settings','Your personal profile','Review your online profile information and account access settings here.','♙'],
- support:['Help & support','How can we help?','For assistance, visit the Vercel Bank customer support page.','♡']
-};
-function showSection(key){
- const s=sections[key]||sections.overview;document.querySelectorAll('.side-link').forEach(b=>b.classList.toggle('active',b.dataset.section===key));
- document.getElementById('overviewView').hidden=key!=='overview';document.getElementById('subView').hidden=key==='overview';
- document.getElementById('subTitle').textContent=s[0];document.getElementById('subHeading').textContent=s[1];document.getElementById('subText').textContent=s[2];document.getElementById('subIcon').textContent=s[3];
- document.getElementById('sidebar').classList.remove('open');window.scrollTo({top:0,behavior:'smooth'});
- if(key==='support'){setTimeout(()=>{document.getElementById('subText').innerHTML='Visit <a href="support.html" style="color:#791c2b;font-weight:700">Customer Support</a> for assistance and guidance.'},0)}
-}
-document.querySelectorAll('.side-link').forEach(b=>b.addEventListener('click',()=>showSection(b.dataset.section)));
-document.querySelectorAll('[data-goto]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();showSection(a.dataset.goto)}));
-let toastTimer;function toast(message){const t=document.getElementById('toast');t.textContent=message;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2800)}
-document.querySelectorAll('.quick').forEach(b=>b.addEventListener('click',()=>{const key=b.dataset.action.toLowerCase();const map={transfers:'transfers',payments:'payments',cards:'cards',statements:'statements'};showSection(map[key])}));
-document.getElementById('menuBtn').addEventListener('click',()=>document.getElementById('sidebar').classList.toggle('open'));
-</script>
-</body></html>
+const sb=window.supabase.createClient("https://jxcazwazjrmtshyzsivw.supabase.co","sb_publishable_q6ffqUMPjzFyxp6iX3VnJg_91QtG41t");
+(async()=>{const {data:{user},error}=await sb.auth.getUser();if(error||!user){location.replace("sign-in.html");return}const name=String(user.user_metadata?.full_name||user.email?.split("@")[0]||"Customer");const initials=name.trim().split(/\\s+/).map(x=>x[0]).join("").slice(0,2).toUpperCase()||"U";document.getElementById("welcome").textContent="Welcome back, "+name+".";document.getElementById("topName").textContent=name;document.getElementById("profileName").textContent=name;document.getElementById("profileCardName").textContent=name;document.getElementById("topInitial").textContent=initials;document.getElementById("profileInitial").textContent=initials;document.getElementById("customerId").textContent=user.email||"—";document.querySelector(".detail span").textContent="Email address";document.querySelector(".detail b").textContent=user.email||"—";})();
+document.getElementById("today").textContent=new Intl.DateTimeFormat("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"}).format(new Date());
+document.getElementById("logout").addEventListener("click",async()=>{await sb.auth.signOut();location.href="sign-in.html"});
+const sections={overview:["Overview","Your banking overview","Your account summary and recent activity are shown on this page.","▦"],accounts:["My accounts","Account information","Your checking and savings account details will be available in this section.","▣"],transfers:["Transfers","Transfer services","Transfer options and recipient management will be available in this section.","⇄"],payments:["Payments & bills","Payment services","Bill payment options and payment history will be available in this section.","▤"],cards:["Cards","Card services","Your card information and card management options will be available in this section.","▱"],statements:["Statements","Statements & documents","Your account statements and important banking documents will be available in this section.","▧"],profile:["Profile & settings","Your personal profile","Review your online profile information and account access settings here.","♙"],support:["Help & support","How can we help?","For assistance, visit the Vercel Bank customer support page.","♡"]};
+function showSection(key){const s=sections[key]||sections.overview;document.querySelectorAll(".side-link").forEach(b=>b.classList.toggle("active",b.dataset.section===key));document.getElementById("overviewView").hidden=key!=="overview";document.getElementById("subView").hidden=key==="overview";document.getElementById("subTitle").textContent=s[0];document.getElementById("subHeading").textContent=s[1];document.getElementById("subText").textContent=s[2];document.getElementById("subIcon").textContent=s[3];document.getElementById("sidebar").classList.remove("open");window.scrollTo({top:0,behavior:"smooth"});if(key==="support"){setTimeout(()=>{document.getElementById("subText").innerHTML='Visit <a href="support.html" style="color:#791c2b;font-weight:700">Customer Support</a> for assistance and guidance.'},0)}}
+document.querySelectorAll(".side-link").forEach(b=>b.addEventListener("click",()=>showSection(b.dataset.section)));
+document.querySelectorAll("[data-goto]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();showSection(a.dataset.goto)}));
+let toastTimer;function toast(message){const t=document.getElementById("toast");t.textContent=message;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),2800)}
+document.querySelectorAll(".quick").forEach(b=>b.addEventListener("click",()=>{const key=b.dataset.action.toLowerCase();const map={transfers:"transfers",payments:"payments",cards:"cards",statements:"statements"};showSection(map[key])}));
+document.getElementById("menuBtn").addEventListener("click",()=>document.getElementById("sidebar").classList.toggle("open"));
+</script></body></html>
