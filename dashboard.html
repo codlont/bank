@@ -73,6 +73,41 @@ main{padding:38px clamp(20px,4vw,58px) 65px;max-width:1500px;width:100%;margin:0
 @media(max-width:760px){.topbar{height:66px;padding:0 18px}.secure{display:none}.layout{display:block}.sidebar{position:fixed;z-index:30;left:0;top:66px;bottom:0;width:265px;transform:translateX(-105%);transition:.25s;box-shadow:10px 0 30px #0001}.sidebar.open{transform:translateX(0);visibility:visible;pointer-events:auto}.sidebar{visibility:visible;pointer-events:auto}.mobile-menu{display:grid;place-items:center;border:0;background:#f8f0f0;color:var(--red);font-size:23px;margin-right:10px;width:42px;height:42px;border-radius:8px;position:relative;z-index:45;touch-action:manipulation;-webkit-tap-highlight-color:transparent}.brand-wrap{display:flex;align-items:center;gap:12px}
 .back-btn{display:none!important}.back-btn{width:38px;height:38px;border:1px solid var(--line);border-radius:50%;background:#fff;color:var(--red);display:grid;place-items:center;font-size:22px;line-height:1;flex-shrink:0}.back-btn:hover{background:#f8f0f0}.balance-row{display:flex;align-items:center;gap:10px}.balance-toggle{position:relative;z-index:2;border:0;background:transparent;color:inherit;opacity:.8;padding:7px;font-size:18px;display:grid;place-items:center}.balance-toggle:hover{opacity:1}.balance-toggle svg{width:20px;height:20px;display:block}.balance.is-hidden{letter-spacing:2px}.top-right{gap:10px}.user-chip .username{display:none}main{padding:29px 17px 45px}.welcome{display:block}.date-pill{display:inline-block;margin-top:16px}.account-grid{grid-template-columns:1fr}.account-card:last-child{grid-column:auto}.lower-grid{grid-template-columns:1fr}.panel{padding:20px}.section-title{margin-top:26px}}
 @media(max-width:390px){.quick-grid{grid-template-columns:1fr 1fr}.quick{padding:14px 10px;gap:8px}.quick strong{font-size:11px}.account-card{padding:19px}}
+
+/* Readability, compact mobile navigation and responsive tap behaviour */
+html,body,button,input,select,textarea{ -webkit-tap-highlight-color:transparent; }
+body{font-size:15px;line-height:1.5}
+.side-link{font-size:14px;font-weight:600;padding:11px 13px;min-height:44px}
+.side-label{font-size:11px}
+.quick strong,.detail b,.profile-fields label,.password-form label{font-weight:700}
+.quick small,.welcome p,.section-title span,.side-bottom p{font-size:12px}
+.date-pill,.secure{font-size:12px}
+.account-foot,.balance-label,.card-top span{font-size:11px}
+.transfer-form label,.profile-fields label,.password-form label{font-size:12px}
+.transfer-form input,.transfer-form select,.transfer-form textarea,.profile-fields input,.password-form input{font-size:14px}
+.transfer-submit,.profile-save,.logout,.copy-account{font-size:12px;font-weight:700}
+button{touch-action:manipulation}
+@media(max-width:760px){
+ .sidebar{
+  top:66px;bottom:auto;height:auto;max-height:calc(100dvh - 84px);
+  width:min(250px,82vw);padding:15px 13px 14px;overflow-y:auto;
+  border:1px solid var(--line);border-left:0;border-radius:0 0 12px 0;
+  box-shadow:8px 12px 28px #0002;transition:transform .16s ease;
+  overscroll-behavior:contain
+ }
+ .sidebar.open{transform:translateX(0)}
+ .side-label{margin:5px 0 8px;padding:0 12px}
+ .side-link{padding:9px 12px;margin:1px 0;min-height:42px}
+ .side-bottom{margin-top:14px;padding:13px 12px 0}
+ .side-bottom p{margin-bottom:8px}
+ .logout{padding:10px 12px}
+ .mobile-menu{width:40px;height:40px;font-size:22px;margin-right:8px}
+ main{padding-top:24px}
+}
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}
+}
+
 </style>
 </head>
 <body>
@@ -303,7 +338,7 @@ function renderMyProfile(){
   });
  }
 }
-function renderMyAccounts(){const panel=document.getElementById("subPanel");if(!customerAccounts.length){panel.innerHTML='<div class="empty"><div class="empty-icon">▣</div><strong>No accounts found</strong><p>Your deposit accounts will appear here once they are available.</p></div>';return;}const money=(amount,currency)=>new Intl.NumberFormat("en-US",{style:"currency",currency:currency||"USD"}).format(Number(amount||0));panel.innerHTML='<div class="account-detail-list">'+customerAccounts.map(account=>{const type=account.account_type==="checking"?"Checking account":"Savings account";const status=String(account.account_status||"active");const opened=account.created_at?new Intl.DateTimeFormat("en-US",{month:"long",day:"numeric",year:"numeric"}).format(new Date(account.created_at)):"—";return '<article class="account-detail-card"><div class="account-detail-head"><strong>'+type+'</strong><span class="status-pill">'+status.toUpperCase()+'</span></div><div class="account-detail-number"><span>'+account.account_number+'</span><button class="copy-account" type="button" data-copy-account="'+account.account_number+'">Copy number</button></div><div class="account-detail-meta"><div><small>Available balance</small><b>'+money(account.available_balance,account.currency_code)+'</b></div><div><small>Currency</small><b>'+(account.currency_code||"USD")+'</b></div><div><small>Account opened</small><b>'+opened+'</b></div><div><small>Account status</small><b>'+status.charAt(0).toUpperCase()+status.slice(1)+'</b></div></div></article>';}).join("")+'</div>';}function showSection(key){if(!Object.prototype.hasOwnProperty.call(sections,key))key="overview";const s=sections[key];try{if(key==="overview")localStorage.removeItem("bankDashboardSection");else localStorage.setItem("bankDashboardSection",key);}catch(storageError){}const nextUrl=key==="overview"?(location.pathname+location.search):(location.pathname+location.search+"#"+key);if(location.pathname+location.search+location.hash!==nextUrl)history.replaceState(null,"",nextUrl);document.querySelectorAll(".side-link").forEach(b=>b.classList.toggle("active",b.dataset.section===key));document.getElementById("overviewView").hidden=key!=="overview";document.getElementById("subView").hidden=key==="overview";document.getElementById("subTitle").textContent=s[0];document.getElementById("subHeading").textContent=s[1];document.getElementById("subText").textContent=s[2];document.getElementById("subIcon").textContent=s[3];document.getElementById("sidebar").classList.remove("open");if(key==="accounts")renderMyAccounts();else if(key==="transfers")renderMyTransfers();else if(key==="profile")renderMyProfile();else if(key!=="support"){document.getElementById("subPanel").innerHTML='<div class="empty"><div class="empty-icon">'+s[3]+'</div><strong>'+s[1]+'</strong><p>'+s[2]+'</p></div>';}window.scrollTo({top:0,behavior:"smooth"});if(key==="support"){setTimeout(()=>{document.getElementById("subText").innerHTML='Visit <a href="support.html" style="color:#791c2b;font-weight:700">Customer Support</a> for assistance and guidance.'},0)}}
+function renderMyAccounts(){const panel=document.getElementById("subPanel");if(!customerAccounts.length){panel.innerHTML='<div class="empty"><div class="empty-icon">▣</div><strong>No accounts found</strong><p>Your deposit accounts will appear here once they are available.</p></div>';return;}const money=(amount,currency)=>new Intl.NumberFormat("en-US",{style:"currency",currency:currency||"USD"}).format(Number(amount||0));panel.innerHTML='<div class="account-detail-list">'+customerAccounts.map(account=>{const type=account.account_type==="checking"?"Checking account":"Savings account";const status=String(account.account_status||"active");const opened=account.created_at?new Intl.DateTimeFormat("en-US",{month:"long",day:"numeric",year:"numeric"}).format(new Date(account.created_at)):"—";return '<article class="account-detail-card"><div class="account-detail-head"><strong>'+type+'</strong><span class="status-pill">'+status.toUpperCase()+'</span></div><div class="account-detail-number"><span>'+account.account_number+'</span><button class="copy-account" type="button" data-copy-account="'+account.account_number+'">Copy number</button></div><div class="account-detail-meta"><div><small>Available balance</small><b>'+money(account.available_balance,account.currency_code)+'</b></div><div><small>Currency</small><b>'+(account.currency_code||"USD")+'</b></div><div><small>Account opened</small><b>'+opened+'</b></div><div><small>Account status</small><b>'+status.charAt(0).toUpperCase()+status.slice(1)+'</b></div></div></article>';}).join("")+'</div>';}function showSection(key){if(!Object.prototype.hasOwnProperty.call(sections,key))key="overview";const s=sections[key];try{if(key==="overview")localStorage.removeItem("bankDashboardSection");else localStorage.setItem("bankDashboardSection",key);}catch(storageError){}const nextUrl=key==="overview"?(location.pathname+location.search):(location.pathname+location.search+"#"+key);if(location.pathname+location.search+location.hash!==nextUrl)history.replaceState(null,"",nextUrl);document.querySelectorAll(".side-link").forEach(b=>b.classList.toggle("active",b.dataset.section===key));document.getElementById("overviewView").hidden=key!=="overview";document.getElementById("subView").hidden=key==="overview";document.getElementById("subTitle").textContent=s[0];document.getElementById("subHeading").textContent=s[1];document.getElementById("subText").textContent=s[2];document.getElementById("subIcon").textContent=s[3];document.getElementById("sidebar").classList.remove("open");if(key==="accounts")renderMyAccounts();else if(key==="transfers")renderMyTransfers();else if(key==="profile")renderMyProfile();else if(key!=="support"){document.getElementById("subPanel").innerHTML='<div class="empty"><div class="empty-icon">'+s[3]+'</div><strong>'+s[1]+'</strong><p>'+s[2]+'</p></div>';}window.scrollTo({top:0,behavior:"instant"});if(key==="support"){setTimeout(()=>{document.getElementById("subText").innerHTML='Visit <a href="support.html" style="color:#791c2b;font-weight:700">Customer Support</a> for assistance and guidance.'},0)}}
 document.querySelectorAll(".side-link").forEach(b=>b.addEventListener("click",()=>showSection(b.dataset.section)));
  document.querySelectorAll("[data-account-card]").forEach(card=>{
   const open=()=>showSection("accounts");
