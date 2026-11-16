@@ -12,3 +12,4 @@ form.addEventListener('submit',async e=>{e.preventDefault();msg.classList.remove
 (async()=>{const {data:{session}}=await sb.auth.getSession();if(session){const {data:role}=await sb.from('manager_users').select('role').eq('user_id',session.user.id).maybeSingle();if(role)location.replace('manager-dashboard.html');}})();
 </script></body></html>
 <!-- Trigger fresh Vercel deployment -->
+
