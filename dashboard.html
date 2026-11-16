@@ -1,1 +1,112 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#791c2b"><title>Online banking dashboard | Vercel Bank</title><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"><style>:root{--r:#791c2b;--g:#c8a45d;--ink:#202126;--muted:#686b70;--line:#e8e4de}*{box-sizing:border-box}body{margin:0;color:var(--ink);font-family:'DM Sans',sans-serif}.nav{padding:18px 5%;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 12px #0001}.brand{color:var(--r);font-weight:700;letter-spacing:.12em}.nav a,.back{color:var(--r);text-decoration:none;font-size:12px;font-weight:700}.hero{padding:70px 6%;background:linear-gradient(90deg,#301b20e8,#301b2099),url('https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&w=1600&q=80') center/cover;color:white}.inner{max-width:1050px;margin:auto}.eyebrow{color:var(--g);font-size:11px;letter-spacing:.18em;font-weight:700}.hero h1{font:700 clamp(36px,5vw,55px) 'Playfair Display',serif;margin:15px 0}.hero p{max-width:650px;line-height:1.8;font-size:14px;color:#eee}.content{padding:55px 6% 75px}.panel{max-width:540px;margin:auto;border:1px solid var(--line);padding:32px;box-shadow:0 14px 40px #0000000a}.panel h2{font:600 30px 'Playfair Display',serif;margin:0 0 10px}.panel p,.note{font-size:13px;color:var(--muted);line-height:1.7}.field{margin:18px 0}.field label{display:block;font-size:12px;font-weight:700;margin-bottom:8px}.field input{width:100%;padding:14px;border:1px solid #d9d5cf;font:14px 'DM Sans',sans-serif}.btn{display:inline-block;background:var(--r);color:#fff;padding:14px 20px;border:0;font-size:12px;font-weight:700;text-decoration:none;cursor:pointer}.full{width:100%;margin-top:8px}.hint,.message{padding:13px;background:#f7f5f1;font-size:11px;line-height:1.7;margin:17px 0;color:#555}.message{display:none;font-size:13px}.message.show{display:block}.back{display:block;text-align:center;margin-top:18px}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin:25px 0}.box{border:1px solid var(--line);padding:22px}.box small{color:var(--muted)}.box strong{display:block;font:600 25px 'Playfair Display',serif;margin-top:10px}.table{width:100%;border-collapse:collapse;margin-top:18px}.table td,.table th{text-align:left;padding:13px;border-bottom:1px solid var(--line);font-size:12px}footer{background:#211d1d;color:#ccc;padding:22px 6%;font-size:11px}@media(max-width:650px){.hero{padding:55px 6%}.content{padding:35px 5%}.panel{padding:23px 18px}.cards{grid-template-columns:1fr}.nav{padding:16px 5%}}</style></head><body><header class="nav"><a class="brand" href="index.html">◇ VERCEL BANK</a><nav><a href="index.html">HOME</a> &nbsp; <a href="online-banking.html">ONLINE BANKING</a></nav></header><main><section class="hero"><div class="inner"><div class="eyebrow">ONLINE BANKING</div><h1 id="welcome">Your dashboard.</h1><p>View your account overview and recent activity.</p></div></section><section class="content"><div class="inner"><button class="btn" id="logout" style="float:right">Log out</button><h2 style="font:600 30px 'Playfair Display',serif">Your accounts</h2><div class="cards"><div class="box"><small>Checking account</small><strong>Account overview</strong><p class="note">Your checking account information will appear here.</p></div><div class="box"><small>Savings account</small><strong>Account overview</strong><p class="note">Your savings account information will appear here.</p></div><div class="box"><small>Online profile</small><strong id="profile">Customer</strong><p class="note">Manage your online access.</p></div></div><div class="box"><h3 style="font:600 22px 'Playfair Display',serif">Recent activity</h3><p class="note">Your recent account activity will appear here.</p></div><a class="back" href="online-banking.html">Back to online banking</a></div></section></main><footer>© 2026 Vercel Bank. All rights reserved. &nbsp; <a style="color:#fff" href="support.html">Support</a></footer><script>let p;try{p=JSON.parse(localStorage.getItem('vercelDemoProfile')||'null')}catch(e){}if(!p||sessionStorage.getItem('vercelDemoSignedIn')!=='yes'){location.replace('sign-in.html')}else{document.getElementById('welcome').textContent='Welcome, '+p.name+'.';document.getElementById('profile').textContent=p.name}document.getElementById('logout').onclick=()=>{sessionStorage.removeItem('vercelDemoSignedIn');location.href='online-banking.html'};</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#791c2b">
+<title>My banking | Vercel Bank</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--red:#791c2b;--red-dark:#5d1420;--gold:#c8a45d;--ink:#242328;--muted:#77747a;--line:#ece8e3;--bg:#f7f6f4;--white:#fff;--green:#39785b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif}a{text-decoration:none;color:inherit}button{font:inherit;cursor:pointer}
+.topbar{height:76px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 4.5%;position:sticky;top:0;z-index:20}
+.brand{display:flex;align-items:center;gap:12px;color:var(--red);font-size:15px;font-weight:700;letter-spacing:.13em}.mark{width:35px;height:35px;border:2px solid var(--gold);display:grid;place-items:center;transform:rotate(45deg);font:700 23px Georgia;color:var(--red)}.mark span{transform:rotate(-45deg)}
+.top-right{display:flex;align-items:center;gap:22px}.secure{font-size:11px;color:var(--muted)}.secure b{color:var(--green);margin-right:6px}.user-chip{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:700}.avatar{width:36px;height:36px;border-radius:50%;background:#f1e8e7;color:var(--red);display:grid;place-items:center;font-weight:700}
+.layout{display:grid;grid-template-columns:245px minmax(0,1fr);min-height:calc(100vh - 76px)}.sidebar{background:#fff;border-right:1px solid var(--line);padding:30px 17px;display:flex;flex-direction:column}.side-label{font-size:10px;letter-spacing:.16em;color:#a19b96;font-weight:700;padding:0 14px;margin:8px 0 13px}.side-link{border:0;background:transparent;display:flex;align-items:center;gap:13px;width:100%;padding:13px 14px;text-align:left;color:#66616a;font-size:13px;border-radius:4px;margin:2px 0}.side-link .ico{width:20px;text-align:center;font-size:16px}.side-link.active{background:#f6eeee;color:var(--red);font-weight:700;border-left:3px solid var(--red)}.side-link:hover{background:#faf5f4}.side-bottom{margin-top:auto;padding:18px 14px 0;border-top:1px solid var(--line)}.side-bottom p{font-size:11px;line-height:1.7;color:var(--muted);margin:0 0 13px}.logout{border:1px solid #e4d8d8;color:var(--red);background:white;padding:11px 15px;width:100%;font-size:12px;font-weight:700;border-radius:3px}
+main{padding:38px clamp(20px,4vw,58px) 65px;max-width:1500px;width:100%;margin:0 auto}.welcome{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:30px}.eyebrow{color:var(--gold);font-size:10px;font-weight:700;letter-spacing:.19em}.welcome h1{font:600 clamp(29px,3vw,38px) 'Playfair Display',serif;margin:8px 0}.welcome p{font-size:13px;color:var(--muted);margin:0}.date-pill{font-size:11px;color:#6e6870;background:#fff;border:1px solid var(--line);padding:11px 14px;border-radius:3px;white-space:nowrap}
+.section-title{display:flex;align-items:center;justify-content:space-between;margin:30px 0 15px}.section-title h2{font:600 22px 'Playfair Display',serif;margin:0}.section-title span{font-size:11px;color:var(--muted)}
+.account-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px}.account-card{background:#fff;border:1px solid var(--line);padding:22px 22px 20px;min-height:165px;position:relative;overflow:hidden}.account-card.primary{background:linear-gradient(130deg,#791c2b,#541520);color:#fff;border:0}.account-card.primary:after{content:"";position:absolute;width:155px;height:155px;border:1px solid #ffffff24;border-radius:50%;right:-55px;top:55px;box-shadow:0 0 0 20px #ffffff08,0 0 0 40px #ffffff05}.card-top{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}.card-top span{font-size:11px;opacity:.78}.card-icon{font-size:19px;color:var(--gold)}.balance-label{font-size:11px;opacity:.72;margin-top:24px;position:relative;z-index:1}.balance{font:600 27px 'Playfair Display',serif;margin:6px 0 0;position:relative;z-index:1}.account-card:not(.primary) .balance{color:var(--red)}.account-foot{font-size:10px;color:var(--muted);margin-top:9px}.primary .account-foot{color:#eadde0}
+.quick-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}.quick{background:#fff;border:1px solid var(--line);padding:18px 16px;display:flex;align-items:center;gap:12px;text-align:left;min-height:75px;transition:.2s}.quick:hover{border-color:#c8a45d;transform:translateY(-2px)}.quick .qicon{width:36px;height:36px;border-radius:50%;background:#f6eeee;color:var(--red);display:grid;place-items:center;font-size:16px;flex-shrink:0}.quick strong{display:block;font-size:12px}.quick small{display:block;font-size:10px;color:var(--muted);margin-top:4px}
+.lower-grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(250px,.85fr);gap:18px;margin-top:26px}.panel{background:#fff;border:1px solid var(--line);padding:23px}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.panel-head h3{font:600 20px 'Playfair Display',serif;margin:0}.panel-head a{font-size:11px;color:var(--red);font-weight:700}.empty{padding:35px 12px;text-align:center}.empty-icon{width:48px;height:48px;border-radius:50%;background:#f7f3ed;color:#9b7b43;display:grid;place-items:center;margin:0 auto 13px;font-size:20px}.empty strong{font-size:13px}.empty p{font-size:11px;line-height:1.7;color:var(--muted);max-width:300px;margin:7px auto 0}
+.profile-row{display:flex;align-items:center;gap:13px;padding:20px 0 16px;border-bottom:1px solid var(--line)}.profile-large{width:45px;height:45px;border-radius:50%;background:#f1e8e7;color:var(--red);display:grid;place-items:center;font-weight:700}.profile-row strong{font-size:13px}.profile-row small{display:block;color:var(--muted);font-size:10px;margin-top:4px}.detail{display:flex;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid #f0eeeb;font-size:11px}.detail span{color:var(--muted)}.detail b{font-weight:600}.profile-link{display:block;color:var(--red);font-size:11px;font-weight:700;margin-top:17px}
+.notice{margin-top:20px;background:#fffaf0;border:1px solid #eee2c9;padding:14px 16px;color:#716144;font-size:11px;line-height:1.65}
+.toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,20px);background:#292326;color:#fff;padding:13px 18px;font-size:12px;border-radius:3px;opacity:0;pointer-events:none;transition:.25s;z-index:50;box-shadow:0 8px 25px #0002}.toast.show{opacity:1;transform:translate(-50%,0)}
+.mobile-menu{display:none}
+@media(max-width:1050px){.account-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.account-card:last-child{grid-column:span 2}.quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.topbar{height:66px;padding:0 18px}.secure{display:none}.layout{display:block}.sidebar{position:fixed;z-index:30;left:0;top:66px;bottom:0;width:265px;transform:translateX(-105%);transition:.25s;box-shadow:10px 0 30px #0001}.sidebar.open{transform:translateX(0)}.mobile-menu{display:block;border:0;background:none;color:var(--red);font-size:23px;margin-right:10px}.brand-wrap{display:flex;align-items:center}.top-right{gap:10px}.user-chip .username{display:none}main{padding:29px 17px 45px}.welcome{display:block}.date-pill{display:inline-block;margin-top:16px}.account-grid{grid-template-columns:1fr}.account-card:last-child{grid-column:auto}.lower-grid{grid-template-columns:1fr}.panel{padding:20px}.section-title{margin-top:26px}}
+@media(max-width:390px){.quick-grid{grid-template-columns:1fr 1fr}.quick{padding:14px 10px;gap:8px}.quick strong{font-size:11px}.account-card{padding:19px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+ <div class="brand-wrap"><button class="mobile-menu" id="menuBtn" aria-label="Open navigation">☰</button><a class="brand" href="index.html"><span class="mark"><span>V</span></span> VERCEL BANK</a></div>
+ <div class="top-right"><div class="secure"><b>●</b> Secure online banking</div><div class="user-chip"><span class="avatar" id="topInitial">U</span><span class="username" id="topName">Customer</span></div></div>
+</header>
+<div class="layout">
+<aside class="sidebar" id="sidebar">
+ <div class="side-label">MY BANKING</div>
+ <button class="side-link active" data-section="overview"><span class="ico">▦</span>Overview</button>
+ <button class="side-link" data-section="accounts"><span class="ico">▣</span>My accounts</button>
+ <button class="side-link" data-section="transfers"><span class="ico">⇄</span>Transfers</button>
+ <button class="side-link" data-section="payments"><span class="ico">▤</span>Payments & bills</button>
+ <button class="side-link" data-section="cards"><span class="ico">▱</span>Cards</button>
+ <button class="side-link" data-section="statements"><span class="ico">▧</span>Statements</button>
+ <div class="side-label" style="margin-top:28px">PERSONAL</div>
+ <button class="side-link" data-section="profile"><span class="ico">♙</span>Profile & settings</button>
+ <button class="side-link" data-section="support"><span class="ico">♡</span>Help & support</button>
+ <div class="side-bottom"><p>Need assistance with your online banking?</p><a href="support.html" class="profile-link">Visit customer support →</a><button class="logout" id="logout">Log out</button></div>
+</aside>
+<main>
+ <section class="welcome"><div><div class="eyebrow">YOUR FINANCIAL SPACE</div><h1 id="welcome">Welcome back.</h1><p>Here’s an overview of your banking relationship.</p></div><div class="date-pill" id="today"></div></section>
+ <div id="overviewView">
+  <div class="section-title"><h2>Account overview</h2><span>All accounts</span></div>
+  <div class="account-grid">
+   <article class="account-card primary"><div class="card-top"><span>CHECKING ACCOUNT</span><span class="card-icon">▣</span></div><div class="balance-label">Available balance</div><div class="balance">— — —</div><div class="account-foot">Account information will appear here</div></article>
+   <article class="account-card"><div class="card-top"><span>SAVINGS ACCOUNT</span><span class="card-icon">◈</span></div><div class="balance-label">Current balance</div><div class="balance">— — —</div><div class="account-foot">Account information will appear here</div></article>
+   <article class="account-card"><div class="card-top"><span>ACCOUNT PROFILE</span><span class="card-icon">♙</span></div><div class="balance-label">Online banking profile</div><div class="balance" id="profileCardName">Customer</div><div class="account-foot">Your personal online access</div></article>
+  </div>
+  <div class="section-title"><h2>Quick access</h2><span>Banking services</span></div>
+  <div class="quick-grid">
+   <button class="quick" data-action="Transfers"><span class="qicon">⇄</span><span><strong>Transfer money</strong><small>Move between accounts</small></span></button>
+   <button class="quick" data-action="Payments"><span class="qicon">▤</span><span><strong>Pay a bill</strong><small>Manage bill payments</small></span></button>
+   <button class="quick" data-action="Cards"><span class="qicon">▱</span><span><strong>Manage cards</strong><small>View card services</small></span></button>
+   <button class="quick" data-action="Statements"><span class="qicon">▧</span><span><strong>Statements</strong><small>Account documents</small></span></button>
+  </div>
+  <div class="lower-grid">
+   <section class="panel"><div class="panel-head"><h3>Recent activity</h3><a href="#" data-goto="statements">View all</a></div><div class="empty"><div class="empty-icon">↗</div><strong>No activity to show</strong><p>Your account activity will be displayed here when transaction information is available.</p></div></section>
+   <section class="panel"><div class="panel-head"><h3>Your profile</h3><a href="#" data-goto="profile">Manage</a></div><div class="profile-row"><div class="profile-large" id="profileInitial">U</div><div><strong id="profileName">Customer</strong><small>Online banking customer</small></div></div><div class="detail"><span>Customer ID</span><b id="customerId">—</b></div><div class="detail"><span>Access status</span><b style="color:var(--green)">Signed in</b></div><a href="#" class="profile-link" data-goto="profile">View profile details →</a></section>
+  </div>
+  <div class="notice">For your security, never share your sign-in details, PIN or one-time security codes with anyone.</div>
+ </div>
+ <section id="subView" hidden>
+  <div class="section-title"><h2 id="subTitle">My accounts</h2><span>VERCEL BANK</span></div>
+  <div class="panel"><div class="empty"><div class="empty-icon" id="subIcon">▣</div><strong id="subHeading">Account information</strong><p id="subText">Your account information will be shown here.</p></div></div>
+ </section>
+</main>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script>
+let profile;try{profile=JSON.parse(localStorage.getItem('vercelDemoProfile')||'null')}catch(e){}
+if(!profile||sessionStorage.getItem('vercelDemoSignedIn')!=='yes'){location.replace('sign-in.html')}
+else{
+ const name=String(profile.name||'Customer');const initials=name.trim().split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase()||'U';
+ document.getElementById('welcome').textContent='Welcome back, '+name+'.';
+ document.getElementById('topName').textContent=name;document.getElementById('profileName').textContent=name;document.getElementById('profileCardName').textContent=name;
+ document.getElementById('topInitial').textContent=initials;document.getElementById('profileInitial').textContent=initials;
+ document.getElementById('customerId').textContent=profile.id||'—';
+}
+document.getElementById('today').textContent=new Intl.DateTimeFormat('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}).format(new Date());
+document.getElementById('logout').addEventListener('click',()=>{sessionStorage.removeItem('vercelDemoSignedIn');location.href='sign-in.html'});
+const sections={
+ overview:['Overview','Your banking overview','Your account summary and recent activity are shown on this page.','▦'],
+ accounts:['My accounts','Account information','Your checking and savings account details will be available in this section.','▣'],
+ transfers:['Transfers','Transfer services','Transfer options and recipient management will be available in this section.','⇄'],
+ payments:['Payments & bills','Payment services','Bill payment options and payment history will be available in this section.','▤'],
+ cards:['Cards','Card services','Your card information and card management options will be available in this section.','▱'],
+ statements:['Statements','Statements & documents','Your account statements and important banking documents will be available in this section.','▧'],
+ profile:['Profile & settings','Your personal profile','Review your online profile information and account access settings here.','♙'],
+ support:['Help & support','How can we help?','For assistance, visit the Vercel Bank customer support page.','♡']
+};
+function showSection(key){
+ const s=sections[key]||sections.overview;document.querySelectorAll('.side-link').forEach(b=>b.classList.toggle('active',b.dataset.section===key));
+ document.getElementById('overviewView').hidden=key!=='overview';document.getElementById('subView').hidden=key==='overview';
+ document.getElementById('subTitle').textContent=s[0];document.getElementById('subHeading').textContent=s[1];document.getElementById('subText').textContent=s[2];document.getElementById('subIcon').textContent=s[3];
+ document.getElementById('sidebar').classList.remove('open');window.scrollTo({top:0,behavior:'smooth'});
+ if(key==='support'){setTimeout(()=>{document.getElementById('subText').innerHTML='Visit <a href="support.html" style="color:#791c2b;font-weight:700">Customer Support</a> for assistance and guidance.'},0)}
+}
+document.querySelectorAll('.side-link').forEach(b=>b.addEventListener('click',()=>showSection(b.dataset.section)));
+document.querySelectorAll('[data-goto]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();showSection(a.dataset.goto)}));
+let toastTimer;function toast(message){const t=document.getElementById('toast');t.textContent=message;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2800)}
+document.querySelectorAll('.quick').forEach(b=>b.addEventListener('click',()=>{const key=b.dataset.action.toLowerCase();const map={transfers:'transfers',payments:'payments',cards:'cards',statements:'statements'};showSection(map[key])}));
+document.getElementById('menuBtn').addEventListener('click',()=>document.getElementById('sidebar').classList.toggle('open'));
+</script>
+</body></html>
