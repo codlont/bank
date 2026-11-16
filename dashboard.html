@@ -276,18 +276,19 @@ async function renderMyTransfers(){
  <section class="transfer-activity"><div class="transfer-activity-head"><h3>Recent transfers</h3><input class="transfer-search" id="transferSearch" type="search" placeholder="Search reference or note…" aria-label="Search transfers"></div><div class="transfer-list" id="transferHistory"><div class="transfer-empty">Loading your recent transfers…</div></div></section>`;
  const tabs=panel.querySelectorAll("[data-transfer-tab]");
  tabs.forEach(tab=>tab.addEventListener("click",()=>{tabs.forEach(x=>x.classList.toggle("active",x===tab));document.getElementById("transferSendPane").hidden=tab.dataset.transferTab!=="send";document.getElementById("transferActivityPane").hidden=tab.dataset.transferTab!=="activity";if(tab.dataset.transferTab==="activity")document.getElementById("transferActivityPane").innerHTML='<p class="transfer-hint">Your latest transfer records are listed below.</p>'; }));
- const {data:rows,error}=await sb.from("bank_transactions").select("reference,sender_user_id,recipient_user_id,amount,currency_code,description,status,created_at").or("sender_user_id.eq."+currentUserId+",recipient_user_id.eq."+currentUserId).order("created_at",{ascending:false}).limit(30);
+ const {data:rows,error}=await sb.from("bank_transactions").select("reference,sender_user_id,recipient_user_id,amount,currency_code,description,status,created_at,transaction_type,is_synthetic").or("sender_user_id.eq."+currentUserId+",recipient_user_id.eq."+currentUserId).order("created_at",{ascending:false}).limit(30);
  const history=document.getElementById("transferHistory");
  if(error){history.innerHTML='<div class="transfer-empty">Transfer activity is temporarily unavailable. Please refresh to try again.</div>';return;}
  const renderRows=(filter="")=>{
   const filtered=(rows||[]).filter(row=>(String(row.reference||"")+" "+String(row.description||"")).toLowerCase().includes(filter.toLowerCase()));
   if(!filtered.length){history.innerHTML='<div class="transfer-empty">'+(filter?"No transfers match your search.":"No transfers yet. Your completed transfers will appear here.")+'</div>';return;}
   history.innerHTML=filtered.map(row=>{
-   const outgoing=row.sender_user_id===currentUserId;
+   const outgoing=row.transaction_type==="debit"||(row.transaction_type!=="credit"&&row.sender_user_id===currentUserId);
+   const title=row.transaction_type==="debit"?"Debit":row.transaction_type==="credit"?"Credit":(outgoing?"Transfer sent":"Transfer received");
    const date=new Intl.DateTimeFormat("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"}).format(new Date(row.created_at));
    const amount=money(row.amount);
    const status=String(row.status||"completed").toUpperCase();
-   return '<article class="transfer-item"><span class="transfer-item-icon '+(outgoing?"":"in")+'">'+(outgoing?"↗":"↙")+'</span><div class="transfer-item-copy"><strong>'+(outgoing?"Transfer sent":"Transfer received")+'</strong><small>'+date+' · Ref '+row.reference+(row.description?" · "+row.description:"")+'</small></div><div class="transfer-item-amount '+(outgoing?"out":"in")+'">'+(outgoing?"−":"+")+amount+'<small>'+status+'</small></div></article>';
+   return '<article class="transfer-item"><span class="transfer-item-icon '+(outgoing?"":"in")+'">'+(outgoing?"↗":"↙")+'</span><div class="transfer-item-copy"><strong>'+title+'</strong><small>'+date+' · Ref '+row.reference+(row.description?" · "+row.description:"")+(row.is_synthetic?" · TEST RECORD":"")+'</small></div><div class="transfer-item-amount '+(outgoing?"out":"in")+'">'+(outgoing?"−":"+")+amount+'<small>'+status+'</small></div></article>';
   }).join("");
  };
  renderRows();
@@ -295,11 +296,12 @@ async function renderMyTransfers(){
 }
 async function renderOverviewActivity(){
  const box=document.getElementById("overviewActivity");if(!box||!currentUserId)return;
- const {data:rows,error}=await sb.from("bank_transactions").select("reference,sender_user_id,recipient_user_id,amount,currency_code,description,status,created_at").or("sender_user_id.eq."+currentUserId+",recipient_user_id.eq."+currentUserId).order("created_at",{ascending:false}).limit(5);
+ const {data:rows,error}=await sb.from("bank_transactions").select("reference,sender_user_id,recipient_user_id,amount,currency_code,description,status,created_at,transaction_type,is_synthetic").or("sender_user_id.eq."+currentUserId+",recipient_user_id.eq."+currentUserId).order("created_at",{ascending:false}).limit(5);
  if(error){box.innerHTML='<div class="empty"><strong>Activity unavailable</strong><p>We could not load your recent transactions. Please try again later.</p></div>';return;}
  if(!rows||!rows.length){box.innerHTML='<div class="empty"><div class="empty-icon">↗</div><strong>No activity yet</strong><p>When you send or receive a transfer, it will appear here.</p></div>';return;}
  box.innerHTML=rows.map(row=>{
-  const outgoing=row.sender_user_id===currentUserId;
+  const outgoing=row.transaction_type==="debit"||(row.transaction_type!=="credit"&&row.sender_user_id===currentUserId);
+  const title=row.transaction_type==="debit"?"Debit":row.transaction_type==="credit"?"Credit":(outgoing?"Transfer sent":"Transfer received");
   const money=new Intl.NumberFormat("en-US",{style:"currency",currency:row.currency_code||"USD"}).format(Number(row.amount||0));
   const date=new Intl.DateTimeFormat("en-US",{month:"short",day:"numeric",year:"numeric"}).format(new Date(row.created_at));
   const title=(row.description|| (outgoing?"Money sent":"Money received")).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
