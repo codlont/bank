@@ -384,7 +384,7 @@ document.getElementById("subPanel").addEventListener("submit",e=>{
  const toAccount=String(data.get("toAccount")||"").trim();
  const amount=Number(data.get("amount"));
  const description=String(data.get("description")||"").trim();
- if(!/^\\d{12}$/.test(toAccount)){toast("Enter a valid 12-digit Bank account number.");return;}
+ if(!/^\d{12}$/.test(toAccount)){toast("Enter a valid 12-digit Bank account number.");return;}
  if(!Number.isFinite(amount)||amount<=0||Math.round(amount*100)!==amount*100){toast("Enter a valid amount with up to two decimal places.");return;}
  if(fromAccount===toAccount){toast("Choose a different recipient account.");return;}
  const source=customerAccounts.find(a=>a.account_number===fromAccount);
@@ -398,7 +398,7 @@ document.getElementById("subPanel").addEventListener("change",async e=>{
  if(e.target.id!=="profilePhotoInput")return;
  const file=e.target.files?.[0];if(!file)return;
  const status=document.getElementById("profileSaveStatus");
- if(!/^image\\/(jpeg|png|webp)$/.test(file.type)||file.size>5*1024*1024){if(status)status.textContent="Choose a JPG, PNG or WEBP image under 5 MB.";e.target.value="";return;}
+ if(!/^image\/(jpeg|png|webp)$/.test(file.type)||file.size>5*1024*1024){if(status)status.textContent="Choose a JPG, PNG or WEBP image under 5 MB.";e.target.value="";return;}
  const button=document.querySelector(".profile-photo-button");if(button){button.textContent="Uploading…";button.style.pointerEvents="none";}
  const ext=file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg";
  const path=currentUserId+"/avatar-"+Date.now()+"."+ext;
