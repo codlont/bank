@@ -13,4 +13,25 @@ const form=document.getElementById("login-form"),msg=document.getElementById("me
 document.querySelector(".toggle").addEventListener("click",()=>{const p=document.getElementById("password");p.type=p.type==="password"?"text":"password";document.querySelector(".toggle").textContent=p.type==="password"?"Show":"Hide"});
 form.addEventListener("submit",async e=>{e.preventDefault();msg.classList.remove("show");submit.disabled=true;submit.textContent="Signing in…";try{const {error}=await window.vercelBankClient.auth.signInWithPassword({email:email.value.trim(),password:document.getElementById("password").value});if(error)throw error;location.href="dashboard.html"}catch(err){msg.textContent=err.message||"Unable to log in. Check your email and password.";msg.classList.add("show");submit.disabled=false;submit.textContent="Log in"}});
 document.getElementById("forgot").addEventListener("click",async e=>{e.preventDefault();msg.classList.remove("show");if(!email.value.trim()){msg.textContent="Enter your email address first, then select Forgot password again.";msg.classList.add("show");return}try{const {error}=await window.vercelBankClient.auth.resetPasswordForEmail(email.value.trim(),{redirectTo:new URL("reset-password.html",window.location.href).toString()});if(error)throw error;msg.textContent="If an account exists for this address, a password reset email has been sent.";msg.classList.add("show")}catch(err){msg.textContent=err.message||"We could not start password recovery. Please try again.";msg.classList.add("show")}});
-</script></body></html>
+</script>
+<script>
+(function removeTopLaunchNotice(){
+ const pattern=/(pre.?launch|relaunch|launching soon|coming soon)/i;
+ function clean(){
+  const nodes=[...document.body.querySelectorAll('body *')].reverse();
+  for(const el of nodes){
+   if(!el.isConnected || el.matches('script,style,header,nav,main,footer')) continue;
+   const rect=el.getBoundingClientRect();
+   if(rect.top>180 || rect.height>180 || rect.height===0) continue;
+   const text=(el.innerText||el.textContent||'').trim();
+   if(text.length>0 && text.length<600 && pattern.test(text)){
+    const childMatch=[...el.children].some(child=>pattern.test((child.innerText||child.textContent||'').trim()));
+    if(!childMatch) el.remove();
+   }
+  }
+ }
+ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',clean); else clean();
+ new MutationObserver(clean).observe(document.documentElement,{childList:true,subtree:true});
+})();
+</script>
+</body></html>
