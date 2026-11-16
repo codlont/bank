@@ -26,3 +26,4 @@ el('edit-form').addEventListener('submit',async e=>{e.preventDefault();if(!selec
 el('close').addEventListener('click',closeEditor);el('cancel').addEventListener('click',closeEditor);el('modal').addEventListener('click',e=>{if(e.target===el('modal'))closeEditor();});el('search').addEventListener('input',render);el('refresh').addEventListener('click',load);el('logout').addEventListener('click',async()=>{await sb.auth.signOut();location.replace('manager-login.html');});
 (async()=>{if(await requireManager())await load();})();
 </script></body></html>
+<!-- Trigger fresh Vercel deployment -->
