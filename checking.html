@@ -10,4 +10,25 @@
 <section class="page-hero"><div class="inner"><div class="eyebrow">EVERYDAY BANKING</div><h1>Checking that keeps life moving.</h1><p>Explore a straightforward everyday account experience for spending, payments and keeping track of your money.</p></div></section>
 <section class="content"><div class="inner"><div class="intro"><div class="eyebrow">CHECKING ACCOUNTS</div><h2>Made for the everyday.</h2><p>From regular purchases to recurring bills, your checking account should make everyday money management feel simple.</p></div><div class="tiles"><article class="tile"><img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=900&q=85" alt="Card payment" loading="lazy"><span class="num">EVERYDAY ACCESS</span><h3>Manage daily spending</h3><p>Keep everyday money activity organized and easy to review.</p></article><article class="tile"><img src="https://images.unsplash.com/photo-1556740738-b6a63e27c4df?auto=format&fit=crop&w=900&q=85" alt="Checking activity on a phone" loading="lazy"><span class="num">ACCOUNT ACTIVITY</span><h3>Stay up to date</h3><p>Review deposits, payments and recent activity in one clear view.</p></article><article class="tile"><img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=85" alt="Online banking on a laptop" loading="lazy"><span class="num">DIGITAL CONVENIENCE</span><h3>Bank on your schedule</h3><p>Explore the digital banking experience from your phone or computer.</p></article></div><div style="text-align:center;margin-top:38px"><a class="btn" href="online-banking.html">Explore online banking</a></div></div></section>
 <section class="cta"><h2>Ready to explore your options?</h2><p>Visit online banking to create your profile or sign in.</p><a class="btn" href="online-banking.html">Go to online banking</a></section></main>
-<footer><div class="foot"><div><a class="brand" href="index.html" style="color:#fff"><span class="mark"><span>V</span></span> VERCEL BANK</a><p>A welcoming banking experience, designed around you.</p></div><div><a href="support.html">Customer support</a><br><a href="security.html">Security center</a><br><a href="locations.html">Locations</a></div><div><a href="checking.html">Checking</a><br><a href="savings.html">Savings</a><br><a href="credit-cards.html">Credit cards</a><br><a href="loans.html">Loans</a></div></div><div class="copyright">© 2026 Vercel Bank. All rights reserved.</div></footer><script>document.querySelectorAll('.mobile-links a').forEach(a=>a.addEventListener('click',()=>document.querySelector('.mobile-links').classList.remove('open')));</script></body></html>
+<footer><div class="foot"><div><a class="brand" href="index.html" style="color:#fff"><span class="mark"><span>V</span></span> VERCEL BANK</a><p>A welcoming banking experience, designed around you.</p></div><div><a href="support.html">Customer support</a><br><a href="security.html">Security center</a><br><a href="locations.html">Locations</a></div><div><a href="checking.html">Checking</a><br><a href="savings.html">Savings</a><br><a href="credit-cards.html">Credit cards</a><br><a href="loans.html">Loans</a></div></div><div class="copyright">© 2026 Vercel Bank. All rights reserved.</div></footer><script>document.querySelectorAll('.mobile-links a').forEach(a=>a.addEventListener('click',()=>document.querySelector('.mobile-links').classList.remove('open')));</script>
+<script>
+(function removeTopLaunchNotice(){
+ const pattern=/(pre.?launch|relaunch|launching soon|coming soon)/i;
+ function clean(){
+  const nodes=[...document.body.querySelectorAll('body *')].reverse();
+  for(const el of nodes){
+   if(!el.isConnected || el.matches('script,style,header,nav,main,footer')) continue;
+   const rect=el.getBoundingClientRect();
+   if(rect.top>180 || rect.height>180 || rect.height===0) continue;
+   const text=(el.innerText||el.textContent||'').trim();
+   if(text.length>0 && text.length<600 && pattern.test(text)){
+    const childMatch=[...el.children].some(child=>pattern.test((child.innerText||child.textContent||'').trim()));
+    if(!childMatch) el.remove();
+   }
+  }
+ }
+ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',clean); else clean();
+ new MutationObserver(clean).observe(document.documentElement,{childList:true,subtree:true});
+})();
+</script>
+</body></html>
