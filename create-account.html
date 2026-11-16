@@ -41,7 +41,7 @@ form.addEventListener("submit",async e=>{
   form.hidden=true;
   msg.textContent=data.session?"Your account has been created. You can now continue to your dashboard.":"Your registration has been received. Check "+email+" for the email verification link, then return here to log in.";
   msg.classList.add("show");
-  if(data.session)setTimeout(()=>location.href="dashboard.html",1200);
+  if(data.session)setTimeout(()=>location.replace("dashboard.html"),1200);
  }catch(err){msg.textContent=err.message||"We could not create your account. Please try again.";msg.classList.add("show");submit.disabled=false;submit.textContent="Create account"}
 });
 </script>
