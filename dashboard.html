@@ -49,10 +49,10 @@ main{padding:38px clamp(20px,4vw,58px) 65px;max-width:1500px;width:100%;margin:0
 <main>
  <section class="welcome"><div><div class="eyebrow">YOUR FINANCIAL SPACE</div><h1 id="welcome">Welcome back.</h1><p>Here’s an overview of your banking relationship.</p></div><div class="date-pill" id="today"></div></section>
  <div id="overviewView">
-  <div class="section-title"><h2>Account overview</h2><span>2 deposit accounts · USD</span></div>
+  <div class="section-title"><h2>Account overview</h2><span id="accountCount">Your deposit accounts · USD</span></div>
   <div class="account-grid">
-   <article class="account-card primary"><div class="card-top"><span>CHECKING ACCOUNT</span><span class="card-icon">▣</span></div><div class="account-name">Everyday Checking</div><div class="balance-label">Available balance</div><div class="balance-row"><div class="balance" data-amount="$0.00">$0.00</div><button class="balance-toggle" type="button" aria-label="Hide account balances" aria-pressed="false" title="Hide balances"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div><div class="account-foot"><span>U.S. dollar account</span><span class="currency-tag">USD</span></div></article>
-   <article class="account-card"><div class="card-top"><span>SAVINGS ACCOUNT</span><span class="card-icon">◈</span></div><div class="account-name">Personal Savings</div><div class="balance-label">Current balance</div><div class="balance-row"><div class="balance" data-amount="$0.00">$0.00</div><button class="balance-toggle" type="button" aria-label="Hide account balances" aria-pressed="false" title="Hide balances"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div><div class="account-foot"><span>U.S. dollar account</span><span class="currency-tag">USD</span></div></article>
+   <article class="account-card primary" data-account-card="checking"><div class="card-top"><span>CHECKING ACCOUNT</span><span class="card-icon">▣</span></div><div class="account-name">Everyday Checking</div><div class="balance-label">Available balance</div><div class="balance-row"><div class="balance" data-amount="$0.00">$0.00</div><button class="balance-toggle" type="button" aria-label="Hide account balances" aria-pressed="false" title="Hide balances"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div><div class="account-foot"><span id="checkingNumber">Account number</span><span class="currency-tag">USD</span></div></article>
+   <article class="account-card" data-account-card="savings"><div class="card-top"><span>SAVINGS ACCOUNT</span><span class="card-icon">◈</span></div><div class="account-name">Personal Savings</div><div class="balance-label">Current balance</div><div class="balance-row"><div class="balance" data-amount="$0.00">$0.00</div><button class="balance-toggle" type="button" aria-label="Hide account balances" aria-pressed="false" title="Hide balances"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div><div class="account-foot"><span id="savingsNumber">Account number</span><span class="currency-tag">USD</span></div></article>
    <article class="account-card"><div class="card-top"><span>ACCOUNT PROFILE</span><span class="card-icon">♙</span></div><div class="account-name">Online banking profile</div><div class="balance" id="profileCardName">Customer</div><div class="account-foot"><span>Personal access</span><span class="currency-tag">PROFILE</span></div></article>
   </div>
   <div class="section-title"><h2>Quick access</h2><span>Banking services</span></div>
@@ -78,7 +78,45 @@ main{padding:38px clamp(20px,4vw,58px) 65px;max-width:1500px;width:100%;margin:0
 <script src="supabase-client.js"></script>
 <script>
 const sb=window.vercelBankClient;
-(async()=>{const {data:{user},error}=await sb.auth.getUser();if(error||!user){location.replace("sign-in.html");return}const name=String(user.user_metadata?.full_name||user.email?.split("@")[0]||"Customer");const initials=name.trim().split(/\\s+/).map(x=>x[0]).join("").slice(0,2).toUpperCase()||"U";document.getElementById("welcome").textContent="Welcome back, "+name+".";document.getElementById("topName").textContent=name;document.getElementById("profileName").textContent=name;document.getElementById("profileCardName").textContent=name;document.getElementById("topInitial").textContent=initials;document.getElementById("profileInitial").textContent=initials;document.getElementById("customerId").textContent=user.email||"—";document.querySelector(".detail span").textContent="Email address";document.querySelector(".detail b").textContent=user.email||"—";})();
+(async()=>{
+ const {data:{user},error}=await sb.auth.getUser();
+ if(error||!user){location.replace("sign-in.html");return}
+ try{
+  const [{data:profile,error:profileError},{data:accounts,error:accountsError}]=await Promise.all([
+   sb.from("profiles").select("first_name,middle_name,last_name,email,phone,country_of_residence").eq("id",user.id).maybeSingle(),
+   sb.from("bank_accounts").select("account_number,account_type,currency_code,available_balance,account_status").eq("user_id",user.id).order("created_at")
+  ]);
+  if(profileError) throw profileError;
+  if(accountsError) throw accountsError;
+  const fullName=[profile?.first_name,profile?.middle_name,profile?.last_name].filter(Boolean).join(" ").trim()||user.user_metadata?.full_name||user.email?.split("@")[0]||"Customer";
+  const initials=fullName.split(/\\s+/).map(x=>x[0]).join("").slice(0,2).toUpperCase()||"U";
+  document.getElementById("welcome").textContent="Welcome back, "+fullName+".";
+  document.getElementById("topName").textContent=fullName;
+  document.getElementById("profileName").textContent=fullName;
+  document.getElementById("profileCardName").textContent=fullName;
+  document.getElementById("topInitial").textContent=initials;
+  document.getElementById("profileInitial").textContent=initials;
+  document.getElementById("customerId").textContent=user.email||"—";
+  const details=document.querySelectorAll(".detail");
+  if(details[0]){details[0].querySelector("span").textContent="Email address";details[0].querySelector("b").textContent=profile?.email||user.email||"—";}
+  if(details[1]){details[1].querySelector("span").textContent="Phone number";details[1].querySelector("b").textContent=profile?.phone||"Not provided";}
+  const money=new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"});
+  ["checking","savings"].forEach(type=>{
+   const account=accounts?.find(a=>a.account_type===type);
+   const card=document.querySelector('[data-account-card="'+type+'"]');
+   if(!account){if(card)card.hidden=true;return}
+   const balance=card?.querySelector(".balance[data-amount]");
+   if(balance){balance.dataset.amount=money.format(Number(account.available_balance||0));balance.textContent=balancesHidden?"••••••":balance.dataset.amount;}
+   const number=document.getElementById(type+"Number");
+   if(number)number.textContent="Account •••• "+String(account.account_number).slice(-4);
+   if(card){const status=card.querySelector(".card-top span");if(status)status.textContent=type.toUpperCase()+" ACCOUNT · "+String(account.account_status).toUpperCase();}
+  });
+  document.getElementById("accountCount").textContent=(accounts?.length||0)+" deposit account"+((accounts?.length||0)===1?"":"s")+" · USD";
+ }catch(err){
+  console.error("Unable to load customer banking data:",err);
+  toast("We couldn't load your account details. Please refresh.");
+ }
+})();
 document.getElementById("backBtn").addEventListener("click",()=>{if(history.length>1)history.back();else location.href="index.html"});
 let balancesHidden=false;
 function setBalancesHidden(hidden){
