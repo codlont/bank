@@ -108,7 +108,6 @@ document.querySelectorAll(".quick").forEach(b=>b.addEventListener("click",()=>{c
 const menuButton=document.getElementById("menuBtn"),sideMenu=document.getElementById("sidebar");
 function toggleBankMenu(force){const open=typeof force==="boolean"?force:!sideMenu.classList.contains("open");sideMenu.classList.toggle("open",open);menuButton.setAttribute("aria-expanded",String(open));menuButton.setAttribute("aria-label",open?"Close banking navigation":"Open banking navigation");menuButton.textContent=open?"×":"☰";}
 menuButton.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();toggleBankMenu();});
-menuButton.addEventListener("touchend",e=>{e.preventDefault();toggleBankMenu();},{passive:false});
 document.addEventListener("click",e=>{if(sideMenu.classList.contains("open")&&!sideMenu.contains(e.target)&&!menuButton.contains(e.target))toggleBankMenu(false);});
 
 </script>
