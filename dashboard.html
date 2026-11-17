@@ -678,10 +678,10 @@ async function lookupDemoRecipient(){
  const number=input.value.trim();resolvedDemoRecipient=null;
  if(!/^\d{12}$/.test(number)){label.textContent=number?"Enter a valid 12-digit account number.":"Recipient name will appear here after lookup.";label.style.color="";return null;}
  label.textContent="Looking up recipient…";label.style.color="";
- const {data,error}=await sb.from("demo_recipients").select("recipient_name,account_number,status").eq("account_number",number).eq("status","active").maybeSingle();
+ const {data,error}=await sb.from("demo_recipients").select("recipient_name,account_number,bank_name,bank_type,account_type,currency_code,country,routing_code,status").eq("account_number",number).eq("status","active").maybeSingle();
  if(error){label.textContent="Recipient lookup is temporarily unavailable.";label.style.color="#b42318";return null;}
  if(!data){label.textContent="No active demo recipient found for this account number.";label.style.color="#b42318";return null;}
- resolvedDemoRecipient=data;label.textContent="Recipient: "+data.recipient_name;label.style.color="#0b9d68";return data;
+ resolvedDemoRecipient=data;label.textContent="Recipient: "+data.recipient_name+" · "+data.bank_name+" · "+data.account_type+" · "+data.currency_code+" · "+data.country;label.style.color="#0b9d68";return data;
 }
 document.getElementById("subPanel").addEventListener("blur",e=>{if(e.target.id==="demoRecipientAccount")lookupDemoRecipient();},true);
 document.getElementById("subPanel").addEventListener("submit",e=>{
@@ -698,7 +698,7 @@ document.getElementById("subPanel").addEventListener("submit",e=>{
  const source=customerAccounts.find(a=>a.account_number===fromAccount);
  if(!source||source.account_status!=="active"){toast("Choose an active account to transfer from.");return;}
  if(amount>Number(source.available_balance||0)){toast("Your available balance is not sufficient.");return;}
- pendingTransfer={fromAccount,toAccount,amount,description,recipientName:resolvedDemoRecipient.recipient_name};
+ pendingTransfer={fromAccount,toAccount,amount,description,recipientName:resolvedDemoRecipient.recipient_name,recipientBankName:resolvedDemoRecipient.bank_name,recipientBankType:resolvedDemoRecipient.bank_type,recipientAccountType:resolvedDemoRecipient.account_type,recipientCurrency:resolvedDemoRecipient.currency_code,recipientCountry:resolvedDemoRecipient.country,recipientRoutingCode:resolvedDemoRecipient.routing_code};
  openTransferDialog(pendingTransfer,false);
 });
 document.getElementById("subPanel").addEventListener("click",async e=>{const button=e.target.closest("[data-copy-account]");if(!button)return;try{await navigator.clipboard.writeText(button.dataset.copyAccount);toast("Account number copied.");}catch(err){toast("Copy is unavailable on this browser.");}});
