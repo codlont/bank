@@ -552,10 +552,13 @@ async function renderMyTransactions(){
   const account=row.sender_account_number||String(100000000000+((seed*2654435761>>>0)%900000000000));
   return name+" · "+account;
  };
- let historyPage=0;\n const render=(query="")=>{
+ let historyPage=0;
+ const render=(query="")=>{
   const filtered=(rows||[]).filter(row=>(cleanReference(row.reference)+" "+cleanDescription(row.description)+" "+String(row.transaction_type||"")+" "+String(row.status||"")).toLowerCase().includes(query.toLowerCase()));
-  const pageCount=Math.max(1,Math.ceil(filtered.length/25));historyPage=Math.min(historyPage,pageCount-1);\n  if(!filtered.length){list.innerHTML='<div class="transfer-empty">'+(query?"No transactions match your search.":"No transactions found for this account.")+'</div>';return;}
-  const pageRows=filtered.slice(historyPage*25,(historyPage+1)*25);\n  list.innerHTML=pageRows.map(row=>{
+  const pageCount=Math.max(1,Math.ceil(filtered.length/25));historyPage=Math.min(historyPage,pageCount-1);
+  if(!filtered.length){list.innerHTML='<div class="transfer-empty">'+(query?"No transactions match your search.":"No transactions found for this account.")+'</div>';return;}
+  const pageRows=filtered.slice(historyPage*25,(historyPage+1)*25);
+  list.innerHTML=pageRows.map(row=>{
    const outgoing=row.transaction_type==="debit"||(row.transaction_type!=="credit"&&row.sender_user_id===currentUserId);
    const kind=row.transaction_type==="debit"?"Transfer sent":row.transaction_type==="credit"?"Credit":(outgoing?"Transfer sent":"Transfer received");
    const date=formatDate(row.created_at);
