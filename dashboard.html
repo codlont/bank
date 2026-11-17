@@ -54,6 +54,7 @@ main{padding:38px clamp(20px,4vw,58px) 65px;max-width:1500px;width:100%;margin:0
 .transfer-activity-head{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:16px}.transfer-activity-head h3{font:600 20px 'Playfair Display',serif;margin:0}
 .transfer-search{border:1px solid var(--line);border-radius:5px;padding:10px 12px;font:11px 'DM Sans',sans-serif;max-width:220px;width:100%;outline:none}
 .transfer-list{display:grid}.transfer-item{display:grid;grid-template-columns:40px minmax(0,1fr) auto;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid #f0eeeb}.transfer-item:last-child{border-bottom:0}
+ .transaction-history-list .transfer-item{border:0!important;border-bottom:0!important;padding:16px 8px;border-radius:10px;cursor:pointer;transition:background .15s ease}.transaction-history-list .transfer-item:hover,.transaction-history-list .transfer-item:focus-visible{background:#f7f8fa;outline:none}.transaction-history-list .transfer-item:focus-visible{box-shadow:0 0 0 2px #7c2433}
 .transfer-item-icon{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#f7eeee;color:var(--red);font-size:17px}.transfer-item-icon.in{background:#edf5ef;color:var(--green)}
 .transfer-item-copy{min-width:0}.transfer-item-copy strong{display:block;font-size:11px}.transfer-item-copy small{display:block;color:var(--muted);font-size:9px;margin-top:4px;overflow-wrap:anywhere;line-height:1.5}
 .transfer-item-amount{text-align:right;font-size:12px;font-weight:700;white-space:nowrap}.transfer-item-amount.out{color:var(--red)}.transfer-item-amount.in{color:var(--green)}.transfer-item-amount small{display:block;color:var(--muted);font-size:9px;font-weight:500;margin-top:4px}
@@ -334,24 +335,55 @@ async function renderMyWithdrawals(){
 }
 async function renderMyTransactions(){
  const panel=document.getElementById("subPanel");
- panel.innerHTML='<div class="transfer-activity"><div class="transfer-activity-head"><div><h3>Transaction history</h3><p class="transfer-hint">All incoming and outgoing activity across your accounts.</p></div><input class="transfer-search" id="transactionSearch" type="search" placeholder="Search description or reference…" aria-label="Search transactions"></div><div class="transfer-list" id="transactionHistory"><div class="transfer-empty">Loading transaction history…</div></div></div>';
+ panel.innerHTML='<div class="transfer-activity transaction-history-list"><div class="transfer-activity-head"><div><h3>Transaction history</h3><p class="transfer-hint">All incoming and outgoing activity across your accounts.</p></div><input class="transfer-search" id="transactionSearch" type="search" placeholder="Search description or reference…" aria-label="Search transactions"></div><div class="transfer-list" id="transactionHistory"><div class="transfer-empty">Loading transaction history…</div></div></div>';
  const list=document.getElementById("transactionHistory");
- const {data:rows,error}=await sb.from("bank_transactions").select("reference,sender_user_id,recipient_user_id,amount,currency_code,description,status,created_at,transaction_type,is_synthetic").or("sender_user_id.eq."+currentUserId+",recipient_user_id.eq."+currentUserId).order("created_at",{ascending:false}).limit(200);
+ const {data:rows,error}=await sb.from("bank_transactions").select("*").or("sender_user_id.eq."+currentUserId+",recipient_user_id.eq."+currentUserId).order("created_at",{ascending:false}).limit(200);
  if(error){list.innerHTML='<div class="transfer-empty">Transaction history is temporarily unavailable. Please try again later.</div>';return;}
  const escapeHtml=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ const formatDate=value=>value?new Intl.DateTimeFormat("en-US",{month:"long",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit",second:"2-digit"}).format(new Date(value)):"—";
  const render=(query="")=>{
   const filtered=(rows||[]).filter(row=>(String(row.reference||"")+" "+String(row.description||"")+" "+String(row.transaction_type||"")+" "+String(row.status||"")).toLowerCase().includes(query.toLowerCase()));
   if(!filtered.length){list.innerHTML='<div class="transfer-empty">'+(query?"No transactions match your search.":"No transactions found for this account.")+'</div>';return;}
-  list.innerHTML=filtered.map(row=>{
+  list.innerHTML=filtered.map((row,index)=>{
    const outgoing=row.transaction_type==="debit"||(row.transaction_type!=="credit"&&row.sender_user_id===currentUserId);
-   const kind=row.transaction_type==="debit"?"Debit":row.transaction_type==="credit"?"Credit":(outgoing?"Transfer sent":"Transfer received");
-   const date=new Intl.DateTimeFormat("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"}).format(new Date(row.created_at));
+   const kind=row.transaction_type==="debit"?"Withdrawal / Debit":row.transaction_type==="credit"?"Deposit / Credit":(outgoing?"Transfer sent":"Transfer received");
+   const date=formatDate(row.created_at);
    const amount=new Intl.NumberFormat("en-US",{style:"currency",currency:row.currency_code||"USD"}).format(Number(row.amount||0));
    const status=escapeHtml(String(row.status||"completed").toUpperCase());
-   return '<article class="transfer-item"><span class="transfer-item-icon '+(outgoing?"":"in")+'">'+(outgoing?"↗":"↙")+'</span><div class="transfer-item-copy"><strong>'+kind+'</strong><small>'+date+' · Ref '+escapeHtml(row.reference)+(row.description?" · "+escapeHtml(row.description):"")+(row.is_synthetic?' · TEST RECORD':'')+'</small></div><div class="transfer-item-amount '+(outgoing?"out":"in")+'">'+(outgoing?"−":"+")+amount+'<small>'+status+'</small></div></article>';
+   return '<article class="transfer-item" role="button" tabindex="0" data-transaction-index="'+index+'" aria-label="View details for '+escapeHtml(kind)+' '+amount+'"><span class="transfer-item-icon '+(outgoing?"":"in")+'">'+(outgoing?"↗":"↙")+'</span><div class="transfer-item-copy"><strong>'+escapeHtml(kind)+'</strong><small>'+escapeHtml(date)+' · Ref '+escapeHtml(row.reference||"Pending")+(row.description?" · "+escapeHtml(row.description):"")+'</small></div><div class="transfer-item-amount '+(outgoing?"out":"in")+'">'+(outgoing?"−":"+")+amount+'<small>'+status+'</small></div></article>';
   }).join("");
  };
  render();
+ const openDetails=index=>{
+  const row=rows[index];if(!row)return;
+  const outgoing=row.transaction_type==="debit"||(row.transaction_type!=="credit"&&row.sender_user_id===currentUserId);
+  const amount=new Intl.NumberFormat("en-US",{style:"currency",currency:row.currency_code||"USD"}).format(Number(row.amount||0));
+  const fields=[
+   ["Transaction type",row.transaction_type|| (outgoing?"debit":"credit")],
+   ["Status",String(row.status||"completed").toUpperCase()],
+   ["Date & time",formatDate(row.created_at)],
+   ["Reference",row.reference||"—"],
+   ["Amount",amount],
+   ["Currency",row.currency_code||"USD"],
+   ["Description",row.description||"—"],
+   ["Direction",outgoing?"Money out":"Money in"],
+   ["From account",row.sender_account_number||"—"],
+   ["To account",row.recipient_account_number||"—"]
+  ];
+  const overlay=document.createElement("div");overlay.id="transactionDetailsOverlay";overlay.style.cssText="position:fixed;inset:0;z-index:120;background:rgba(20,18,19,.62);display:grid;place-items:center;padding:16px;overflow:auto";
+  const card=document.createElement("section");card.className="transfer-review-card";card.setAttribute("role","dialog");card.setAttribute("aria-modal","true");card.setAttribute("aria-labelledby","transactionDetailsTitle");
+  card.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px"><div><span class="profile-kicker">TRANSACTION DETAILS</span><h2 id="transactionDetailsTitle" style="margin:5px 0 0">Transaction receipt</h2></div><button type="button" id="closeTransactionDetails" aria-label="Close details" style="border:0;background:#f2f2f2;border-radius:50%;width:36px;height:36px;font-size:20px;cursor:pointer">×</button></div><div class="transfer-review-total"><small>'+(outgoing?"Amount debited":"Amount credited")+'</small><strong>'+amount+'</strong></div><div class="transfer-review-rows">'+fields.map(([label,value])=>'<div class="transfer-review-row"><span>'+escapeHtml(label)+'</span><b>'+escapeHtml(value)+'</b></div>').join("")+'</div>'+(row.is_synthetic?'<p style="margin:16px 0 0;padding:10px 12px;background:#fff7e8;border-radius:8px;color:#805600;font-size:11px">Simulated record · This entry was created for testing and is not a real-world bank transaction.</p>':"")+'<div class="transfer-review-actions" style="grid-template-columns:1fr"><button class="transfer-confirm" type="button" id="transactionDetailsDone">Close</button></div>';
+  overlay.appendChild(card);document.body.appendChild(overlay);
+  const close=()=>overlay.remove();
+  card.querySelector("#closeTransactionDetails").addEventListener("click",close);
+  card.querySelector("#transactionDetailsDone").addEventListener("click",close);
+  overlay.addEventListener("click",e=>{if(e.target===overlay)close()});
+  const escape=e=>{if(e.key==="Escape"){close();document.removeEventListener("keydown",escape)}};
+  document.addEventListener("keydown",escape);
+  card.querySelector("#transactionDetailsDone").focus();
+ };
+ list.addEventListener("click",e=>{const item=e.target.closest("[data-transaction-index]");if(item)openDetails(Number(item.dataset.transactionIndex));});
+ list.addEventListener("keydown",e=>{const item=e.target.closest("[data-transaction-index]");if(item&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openDetails(Number(item.dataset.transactionIndex));}});
  document.getElementById("transactionSearch").addEventListener("input",e=>render(e.target.value));
 }
 async function renderOverviewActivity(){
