@@ -537,7 +537,7 @@ async function renderMyTransactions(){
  const panel=document.getElementById("subPanel");
  panel.innerHTML='<div class="transfer-activity transaction-history-list"><div class="transfer-activity-head"><div><p class="transfer-hint">All incoming and outgoing activity across your accounts.</p></div><input class="transfer-search" id="transactionSearch" type="search" placeholder="Search description or reference…" aria-label="Search transactions"></div><div class="transfer-list" id="transactionHistory"><div class="transfer-empty">Loading transaction history…</div></div></div>';
  const list=document.getElementById("transactionHistory");
- const {data:rows,error}=await sb.from("bank_transactions").select("*").or("sender_user_id.eq."+currentUserId+",recipient_user_id.eq."+currentUserId).order("created_at",{ascending:false}).limit(200);
+ const {data:rows,error}=await sb.from("bank_transactions").select("*").or("sender_user_id.eq."+currentUserId+",recipient_user_id.eq."+currentUserId).order("created_at",{ascending:false}).limit(1000);
  if(error){list.innerHTML='<div class="transfer-empty">Transaction history is temporarily unavailable. Please try again later.</div>';return;}
  const escapeHtml=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
  const formatDate=value=>value?new Intl.DateTimeFormat("en-US",{month:"long",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit",second:"2-digit"}).format(new Date(value)):"—";
