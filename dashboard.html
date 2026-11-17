@@ -987,7 +987,7 @@ window.smartsupp||(function(d){var s,c,o=smartsupp=function(){o._.push(arguments
  let startX=0,startY=0,originX=0,originY=0,dragging=false,wasDragged=false,suppressClickUntil=0;
  b.addEventListener("pointerdown",e=>{dragging=true;wasDragged=false;startX=e.clientX;startY=e.clientY;const r=b.getBoundingClientRect();originX=r.left;originY=r.top;try{b.setPointerCapture(e.pointerId)}catch(err){}});
  b.addEventListener("pointermove",e=>{if(!dragging)return;const dx=e.clientX-startX,dy=e.clientY-startY;if(Math.hypot(dx,dy)>9)wasDragged=true;if(wasDragged){b.style.left=clamp(originX+dx,0,innerWidth-size)+"px";b.style.top=clamp(originY+dy,0,innerHeight-size)+"px";b.style.right="auto";b.style.bottom="auto";}});
- function finishDrag(e){if(!dragging)return;dragging=false;if(wasDragged){suppressClickUntil=Date.now()+700;const r=b.getBoundingClientRect();try{localStorage.setItem(KEY,JSON.stringify({x:r.left,y:r.top}))}catch(err){}if(e){e.preventDefault();e.stopPropagation();}}}
+ function finishDrag(e){if(!dragging)return;dragging=false;if(wasDragged){suppressClickUntil=Date.now()+700;const r=b.getBoundingClientRect();try{localStorage.setItem(KEY,JSON.stringify({x:r.left,y:r.top}))}catch(err){}if(e){e.preventDefault();e.stopPropagation();}setTimeout(()=>{wasDragged=false},750);}}
  b.addEventListener("pointerup",finishDrag);
  b.addEventListener("pointercancel",finishDrag);
  b.addEventListener("click",e=>{if(wasDragged||Date.now()<suppressClickUntil){e.preventDefault();e.stopImmediatePropagation();wasDragged=false;return;}if(typeof smartsupp==="function"){smartsupp("chat:open");}else{b.title="Chat is loading. Tap again shortly.";setTimeout(()=>{if(typeof smartsupp==="function")smartsupp("chat:open")},700);}},true);
