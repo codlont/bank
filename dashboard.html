@@ -300,7 +300,7 @@ async function renderMyTransfers(){
    const date=new Intl.DateTimeFormat("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"}).format(new Date(row.created_at));
    const amount=money(row.amount);
    const status=String(row.status||"completed").toUpperCase();
-   return '<article class="transfer-item"><span class="transfer-item-icon '+(outgoing?"":"in")+'">'+(outgoing?"↗":"↙")+'</span><div class="transfer-item-copy"><strong>'+title+'</strong><small>'+date+' · Ref '+row.reference+(row.description?" · "+row.description:"")+(row.is_synthetic?" · TEST RECORD":"")+'</small></div><div class="transfer-item-amount '+(outgoing?"out":"in")+'">'+(outgoing?"−":"+")+amount+'<small>'+status+'</small></div></article>';
+   return '<article class="transfer-item"><span class="transfer-item-icon '+(outgoing?"":"in")+'">'+(outgoing?"↗":"↙")+'</span><div class="transfer-item-copy"><strong>'+title+'</strong><small>'+date+' · Ref '+row.reference+(row.description?" · "+row.description:"")+'</small></div><div class="transfer-item-amount '+(outgoing?"out":"in")+'">'+(outgoing?"−":"+")+amount+'<small>'+status+'</small></div></article>';
   }).join("");
  };
  renderRows();
