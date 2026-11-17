@@ -574,7 +574,7 @@ async function renderMyTransfers(){
    <div class="recipient-details visible" id="demoRecipientDetails">
     <div class="recipient-details-title">Recipient bank information</div>
     <label class="recipient-detail-wide">Recipient full name<input name="recipientName" id="demoRecipientName" required placeholder="Full name as registered"></label>
-    <label>Bank name<select name="recipientBank" id="demoRecipientBank" required><option value="">Select a bank</option><option value="Vercel Bank (Demo)">Vercel Bank (Demo)</option><option value="JPMorgan Chase Bank">JPMorgan Chase Bank</option><option value="Bank of America">Bank of America</option><option value="Wells Fargo Bank">Wells Fargo Bank</option><option value="Citibank">Citibank</option><option value="U.S. Bank">U.S. Bank</option><option value="PNC Bank">PNC Bank</option><option value="Truist Bank">Truist Bank</option><option value="Capital One">Capital One</option><option value="TD Bank">TD Bank</option><option value="Goldman Sachs Bank USA">Goldman Sachs Bank USA</option><option value="Ally Bank">Ally Bank</option><option value="Discover Bank">Discover Bank</option><option value="Fifth Third Bank">Fifth Third Bank</option><option value="Citizens Bank">Citizens Bank</option><option value="Huntington National Bank">Huntington National Bank</option><option value="KeyBank">KeyBank</option><option value="Regions Bank">Regions Bank</option><option value="BMO Bank">BMO Bank</option><option value="Santander Bank">Santander Bank</option><option value="HSBC Bank USA">HSBC Bank USA</option><option value="Barclays US">Barclays US</option><option value="Navy Federal Credit Union">Navy Federal Credit Union</option><option value="USAA Federal Savings Bank">USAA Federal Savings Bank</option><option value="Charles Schwab Bank">Charles Schwab Bank</option><option value="First Citizens Bank">First Citizens Bank</option><option value="M&amp;T Bank">M&amp;T Bank</option><option value="Comerica Bank">Comerica Bank</option><option value="Synchrony Bank">Synchrony Bank</option><option value="American Express National Bank">American Express National Bank</option><option value="The Bank of New York Mellon">The Bank of New York Mellon</option><option value="Deutsche Bank Trust Company Americas">Deutsche Bank Trust Company Americas</option><option value="Standard Chartered Bank">Standard Chartered Bank</option><option value="Royal Bank of Canada">Royal Bank of Canada</option><option value="Toronto-Dominion Bank">Toronto-Dominion Bank</option><option value="Bank of Montreal">Bank of Montreal</option><option value="CIBC Bank USA">CIBC Bank USA</option><option value="JPMorgan Chase International">JPMorgan Chase International</option><option value="HSBC UK Bank">HSBC UK Bank</option><option value="Barclays Bank UK">Barclays Bank UK</option><option value="Lloyds Bank">Lloyds Bank</option><option value="NatWest">NatWest</option><option value="Santander UK">Santander UK</option><option value="BNP Paribas">BNP Paribas</option><option value="Société Générale">Société Générale</option><option value="Deutsche Bank AG">Deutsche Bank AG</option><option value="UBS">UBS</option><option value="Credit Suisse">Credit Suisse</option><option value="ING Bank">ING Bank</option><option value="Revolut Bank">Revolut Bank</option><option value="Wise">Wise</option><option value="Monzo Bank">Monzo Bank</option><option value="National Australia Bank">National Australia Bank</option><option value="Commonwealth Bank of Australia">Commonwealth Bank of Australia</option><option value="ANZ Bank">ANZ Bank</option><option value="Westpac">Westpac</option><option value="Standard Bank">Standard Bank</option><option value="First National Bank">First National Bank</option><option value="Access Bank">Access Bank</option><option value="Guaranty Trust Bank">Guaranty Trust Bank</option><option value="Zenith Bank">Zenith Bank</option><option value="United Bank for Africa">United Bank for Africa</option><option value="FirstBank Nigeria">FirstBank Nigeria</option><option value="Ecobank">Ecobank</option></select></label>
+    <label>Bank name<div class="bank-picker"><select name="recipientBank" id="demoRecipientBank" required><option value="Vercel Bank">Vercel Bank</option></select><button type="button" class="bank-search-trigger" data-bank-search="demoRecipientBank" aria-label="Search US banks" title="Search US banks">⌕</button></div></label>
     <label>Transfer type<select name="transferType" id="demoTransferType" required><option value="Domestic">Domestic</option><option value="International">International</option></select></label>
     <label>Account type<select name="recipientAccountType" id="demoRecipientAccountType" required><option value="">Select account type</option><option>Checking</option><option>Savings</option><option>Current</option><option>Business</option></select></label>
     <label class="recipient-detail-wide"><span id="demoRecipientIdentifierLabel">US routing number</span><input name="recipientRouting" id="demoRecipientRouting" inputmode="numeric" maxlength="9" pattern="[0-9]{9}" required placeholder="Enter 9-digit routing number"></label>
@@ -1017,5 +1017,45 @@ body.has-mobile-more #fixedSmartsuppLauncher{bottom:calc(88px + env(safe-area-in
  });
 })();
 </script>
-</body></html>
+
+<style id="us-bank-search-style">
+.bank-picker{display:flex;align-items:stretch;gap:7px;width:100%;margin-top:7px}.bank-picker select{flex:1;min-width:0;margin-top:0!important}.bank-search-trigger{width:48px;min-width:48px;border:1px solid #dbe4f3;border-radius:10px;background:#fff;color:#1455b8;font-size:26px;line-height:1;cursor:pointer}.bank-search-modal{position:fixed;inset:0;z-index:2147482500;background:#10182899;display:none;align-items:center;justify-content:center;padding:16px}.bank-search-modal.open{display:flex}.bank-search-panel{width:min(100%,480px);max-height:min(78dvh,680px);overflow:hidden;background:#fff;border-radius:16px;box-shadow:0 22px 70px #0003;display:flex;flex-direction:column}.bank-search-head{padding:17px 18px;border-bottom:1px solid #e9edf4;display:flex;align-items:center;justify-content:space-between;gap:12px}.bank-search-head strong{font-size:16px;font-weight:800;color:#172343}.bank-search-close{border:0;border-radius:50%;width:36px;height:36px;background:#f1f4f9;font-size:22px}.bank-search-input{margin:14px 16px 8px;width:calc(100% - 32px);height:48px;border:1px solid #dce4f0;border-radius:10px;padding:0 13px;font-size:16px!important;outline:none}.bank-search-results{overflow:auto;padding:0 12px 12px}.bank-search-result{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid #eff2f6;background:#fff;padding:13px 10px;font-size:14px;font-weight:650;color:#172343}.bank-search-status{padding:14px 18px;font-size:12px;color:#68758d}
+</style>
+<div class="bank-search-modal" id="usBankSearchModal" aria-hidden="true"><section class="bank-search-panel" role="dialog" aria-modal="true" aria-label="Search US banks"><header class="bank-search-head"><strong>Choose a US bank</strong><button type="button" class="bank-search-close" id="usBankSearchClose" aria-label="Close">×</button></header><input class="bank-search-input" id="usBankSearchInput" type="search" placeholder="Search bank name…" autocomplete="off"><div class="bank-search-status" id="usBankSearchStatus">Loading US banks…</div><div class="bank-search-results" id="usBankSearchResults"></div></section></div>
+<script id="us-bank-search-controller">
+(function(){
+ if(window.__usBankPickerInstalled)return;window.__usBankPickerInstalled=true;
+ const modal=document.getElementById('usBankSearchModal'),input=document.getElementById('usBankSearchInput'),results=document.getElementById('usBankSearchResults'),status=document.getElementById('usBankSearchStatus');
+ if(!modal||!input||!results||!status)return;
+ let banks=[],loaded=false,loading=false,target=null;
+ const close=()=>{modal.classList.remove('open');modal.setAttribute('aria-hidden','true');target=null;};
+ document.getElementById('usBankSearchClose').addEventListener('click',close);
+ modal.addEventListener('click',e=>{if(e.target===modal)close();});
+ function render(){
+  const q=input.value.trim().toLowerCase(),found=banks.filter(name=>!q||name.toLowerCase().includes(q)).slice(0,100);
+  results.innerHTML=found.map(name=>'<button type="button" class="bank-search-result" data-bank-name="'+name.replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'">'+name.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</button>').join('');
+  results.querySelectorAll('[data-bank-name]').forEach(btn=>btn.addEventListener('click',()=>{
+   if(!target)return;const select=document.getElementById(target);if(!select)return;
+   let option=Array.from(select.options).find(o=>o.value===btn.dataset.bankName);
+   if(!option){option=new Option(btn.dataset.bankName,btn.dataset.bankName);select.add(option);}
+   select.value=btn.dataset.bankName;select.dispatchEvent(new Event('change',{bubbles:true}));close();
+  }));
+  status.textContent=found.length?(q?'Showing '+found.length+' matching banks':'Showing first '+found.length+' banks. Type to narrow the list.'):'No banks match that search.';
+ }
+ async function load(){
+  if(loaded||loading)return;loading=true;status.textContent='Loading active US banks from the FDIC directory…';
+  try{
+   const url='https://api.fdic.gov/banks/institutions?filters=ACTIVE%3A1&fields=NAME%2CACTIVE&limit=10000&sort_by=NAME&sort_order=ASC&format=json';
+   const response=await fetch(url,{headers:{Accept:'application/json'}});if(!response.ok)throw new Error('The US bank directory is temporarily unavailable.');
+   const payload=await response.json();banks=[...new Set((payload.data||[]).map(row=>String(row.data?.NAME||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+   loaded=true;status.textContent=banks.length+' active FDIC-insured US banks available. Search by name.';render();
+  }catch(err){status.textContent=err.message||'Could not load the US bank directory. Please try again.';}
+  finally{loading=false;}
+ }
+ document.querySelectorAll('[data-bank-search]').forEach(button=>button.addEventListener('click',async()=>{
+  target=button.dataset.bankSearch;modal.classList.add('open');modal.setAttribute('aria-hidden','false');input.value='';results.innerHTML='';status.textContent='Loading US banks…';input.focus();await load();render();
+ }));
+ input.addEventListener('input',render);
+})();
+</script></body></html>
 <!-- Redeploy trigger: customer dashboard update -->
