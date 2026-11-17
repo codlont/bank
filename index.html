@@ -175,15 +175,30 @@ footer{background:#0b1f45;color:#dce8ff}
 </script>
 
 <!-- Smartsupp Live Chat -->
-<script type="text/javascript">
-var _smartsupp = _smartsupp || {};
-_smartsupp.key = '513db062fbcd7c63ecd3e5b04f60443504ca2f02';
-window.smartsupp||(function(d) {
-  var s,c,o=smartsupp=function(){ o._.push(arguments)};o._=[];
-  s=d.getElementsByTagName('script')[0];c=d.createElement('script');
-  c.type='text/javascript';c.charset='utf-8';c.async=true;
-  c.src='https://www.smartsuppchat.com/loader.js?';s.parentNode.insertBefore(c,s);
-})(document);
+<script>
+var _smartsupp=_smartsupp||{};
+_smartsupp.key='513db062fbcd7c63ecd3e5b04f60443504ca2f02';
+_smartsupp.hideWidget=true;
+window.smartsupp||(function(d){var s,c,o=smartsupp=function(){o._.push(arguments)};o._=[];s=d.getElementsByTagName('script')[0];c=d.createElement('script');c.type='text/javascript';c.charset='utf-8';c.async=true;c.src='https://www.smartsuppchat.com/loader.js?';s.parentNode.insertBefore(c,s);})(document);
 </script>
 <noscript>Powered by <a href="https://www.smartsupp.com" target="_blank" rel="noopener noreferrer">Smartsupp</a></noscript>
+<!-- Movable Smartsupp live-chat launcher -->
+<script>
+(function(){
+ const KEY="vercelBankChatPosition";
+ const b=document.createElement("button");b.type="button";b.id="movableChatLauncher";b.setAttribute("aria-label","Open live chat");b.title="Drag to move · Tap to chat";
+ b.innerHTML='<svg viewBox="0 0 24 24"><path d="M4 5.5A3.5 3.5 0 0 1 7.5 2h9A3.5 3.5 0 0 1 20 5.5v7a3.5 3.5 0 0 1-3.5 3.5H10l-5.5 4v-4.7A3.5 3.5 0 0 1 4 12.5z" fill="currentColor"/></svg>';
+ b.style.cssText="position:fixed;z-index:2147483000;right:20px;bottom:24px;width:62px;height:62px;border:0;border-radius:50%;background:linear-gradient(145deg,#287cff,#0757e8);color:#fff;box-shadow:0 8px 25px #0757e855;display:grid;place-items:center;cursor:grab;touch-action:none;padding:15px";
+ b.querySelector("svg").style.cssText="width:100%;height:100%";document.body.appendChild(b);
+ const clamp=(n,min,max)=>Math.min(Math.max(n,min),max);
+ try{const p=JSON.parse(localStorage.getItem(KEY)||"null");if(p&&Number.isFinite(p.x)&&Number.isFinite(p.y)){b.style.left=clamp(p.x,0,innerWidth-62)+"px";b.style.top=clamp(p.y,0,innerHeight-62)+"px";b.style.right="auto";b.style.bottom="auto";}}catch(e){}
+ let sx=0,sy=0,ox=0,oy=0,moved=false,drag=false;
+ b.addEventListener("pointerdown",e=>{drag=true;moved=false;sx=e.clientX;sy=e.clientY;const r=b.getBoundingClientRect();ox=r.left;oy=r.top;b.setPointerCapture(e.pointerId);});
+ b.addEventListener("pointermove",e=>{if(!drag)return;const dx=e.clientX-sx,dy=e.clientY-sy;if(Math.abs(dx)+Math.abs(dy)>7)moved=true;if(moved){b.style.left=clamp(ox+dx,0,innerWidth-62)+"px";b.style.top=clamp(oy+dy,0,innerHeight-62)+"px";b.style.right="auto";b.style.bottom="auto";}});
+ b.addEventListener("pointerup",()=>{if(!drag)return;drag=false;if(moved){const r=b.getBoundingClientRect();try{localStorage.setItem(KEY,JSON.stringify({x:r.left,y:r.top}));}catch(e){}}});
+ b.addEventListener("pointercancel",()=>drag=false);
+ b.addEventListener("click",()=>{if(moved){moved=false;return;}if(typeof smartsupp==="function"){smartsupp("chat:show");smartsupp("chat:open");}else{b.title="Chat is loading. Tap again shortly.";setTimeout(()=>{if(typeof smartsupp==="function"){smartsupp("chat:show");smartsupp("chat:open");}},900);}});
+ addEventListener("resize",()=>{if(b.style.left){b.style.left=clamp(parseFloat(b.style.left)||0,0,innerWidth-62)+"px";b.style.top=clamp(parseFloat(b.style.top)||0,0,innerHeight-62)+"px";}});
+})();
+</script>
 </body></html>
