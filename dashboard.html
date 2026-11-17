@@ -986,7 +986,8 @@ body.has-mobile-more #fixedSmartsuppLauncher{bottom:calc(88px + env(safe-area-in
 </style>
 <script id="single-fixed-smartsupp-launcher">
 (function(){
- document.querySelectorAll("#fixedSmartsuppLauncher").forEach(function(existing,index){if(index>0)existing.remove();});\n  if(document.getElementById("fixedSmartsuppLauncher"))return;
+ document.querySelectorAll("#fixedSmartsuppLauncher").forEach(function(existing,index){if(index>0)existing.remove();});
+  if(document.getElementById("fixedSmartsuppLauncher"))return;
  const button=document.createElement("button");
  button.type="button";button.id="fixedSmartsuppLauncher";
  button.setAttribute("aria-label","Open live chat");button.title="Live chat";
