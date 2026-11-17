@@ -581,6 +581,8 @@ async function renderMyTransactions(){
   const description=cleanDescription(row.description);
   const originalDescription=String(row.description||"");
   const demoRecipient=originalDescription.match(/^Demo transfer to\s*(.*?)\s*[·|—-]\s*([0-9]{12})/i);
+  const isCompanyPayment=/online|merchant|bill payment|utility|subscription|service payment|retail purchase|grocery purchase|transport payment/i.test(originalDescription);
+  const companyLabel=description.replace(/^Demo\s+/i,"").replace(/\s+(purchase|payment)$/i,"").trim()||"Company";
   const fields=[
    ["Transaction type",row.transaction_type|| (outgoing?"debit":"credit")],
    ["Status",String(row.status||"completed").toUpperCase()],
@@ -588,10 +590,11 @@ async function renderMyTransactions(){
    ["Reference",cleanReference(row.reference)],
    ["Amount",amount],
    ["Currency",row.currency_code||"USD"],
-   ["Description",description],
-   ...(demoRecipient?[["Recipient",demoRecipient[1]],["Recipient account",demoRecipient[2]]]:[]),
-   ["Direction",outgoing?"Money out":"Money in"],
-   ["From",randomFrom(row)]
+   ...(description!=="—"?[["Description",description]]:[]),
+   ...(outgoing&&demoRecipient?[["To",demoRecipient[1]],["Recipient account",demoRecipient[2]]]:[]),
+   ...(outgoing&&isCompanyPayment?[["Company",companyLabel]]:[]),
+   ...(!outgoing?[["From",randomFrom(row)]]:[]),
+   ["Direction",outgoing?"Money out":"Money in"]
   ];
   const overlay=document.createElement("div");overlay.id="transactionDetailsOverlay";overlay.style.cssText="position:fixed;inset:0;z-index:120;background:rgba(20,18,19,.62);display:grid;place-items:center;padding:16px;overflow:auto";
   const card=document.createElement("section");card.className="transfer-review-card";card.setAttribute("role","dialog");card.setAttribute("aria-modal","true");card.setAttribute("aria-labelledby","transactionDetailsTitle");
