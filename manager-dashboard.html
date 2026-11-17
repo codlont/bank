@@ -107,7 +107,7 @@ function renderDemoRecipients(){
 function showRecipientMessage(message,isError=false){const box=el('recipient-message');box.textContent=message;box.style.display='block';box.style.background=isError?'#fff1f0':'#edf8f2';box.style.color=isError?'#b42318':'#087443';}
 el('recipient-form').addEventListener('submit',async e=>{
  e.preventDefault();const name=el('recipient-name').value.trim(),number=el('recipient-number').value.trim(),button=el('recipient-submit');
- if(name.length<2||!/^\\d{12}$/.test(number)){showRecipientMessage('Enter a recipient name and a valid 12-digit account number.',true);return;}
+ if(name.length<2||!/^\d{12}$/.test(number)){showRecipientMessage('Enter a recipient name and a valid 12-digit account number.',true);return;}
  button.disabled=true;button.textContent='Creating…';
  try{const {error}=await sb.from('demo_recipients').insert({recipient_name:name,account_number:number,created_by:manager.id});if(error)throw error;el('recipient-form').reset();showRecipientMessage('Demo recipient created. Customers can now look up this account number.');await load();}
  catch(error){showRecipientMessage(error.message||'Could not create recipient. Check whether the account number is already in use.',true);}
