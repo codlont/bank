@@ -352,7 +352,26 @@ main{max-width:760px!important;padding:24px 5.5% 120px!important;margin:0 auto!i
  .toast{bottom:calc(90px + env(safe-area-inset-bottom))!important}#subView[data-section="transfers"]>.section-title{display:none!important}#subView[data-section="transfers"] #subPanel{padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important}#subView[data-section="transfers"] .transfer-shell{display:block!important;max-width:760px!important;margin:0 auto!important}#subView[data-section="transfers"] .transfer-main{padding:clamp(18px,4vw,30px)!important;border-radius:22px!important;border:1px solid #e4eafb!important;background:rgba(255,255,255,.92)!important;box-shadow:0 12px 30px #183d8a12!important}#subView[data-section="transfers"] .transfer-page-kicker{display:block;color:#0757e8;font-size:10px;font-weight:800;letter-spacing:.16em;margin-bottom:8px}#subView[data-section="transfers"] .transfer-intro h3{font:850 27px Inter,sans-serif!important;color:#101a35!important;letter-spacing:-.8px!important}#subView[data-section="transfers"] .transfer-intro p{color:#66718d!important}#subView[data-section="transfers"] .transfer-form{gap:16px!important}#subView[data-section="transfers"] .transfer-form label{color:#1b2745!important}#subView[data-section="transfers"] .transfer-form input,#subView[data-section="transfers"] .transfer-form select{border-radius:10px!important;border-color:#dfe7f6!important}#subView[data-section="transfers"] .transfer-submit{border-radius:12px!important;background:linear-gradient(100deg,#073cba,#075eea)!important;box-shadow:0 8px 18px #0757e82b!important}
 }
 @media(max-width:390px){.quick-grid{gap:7px!important}.quick{min-height:101px!important}.quick strong{font-size:11px!important}.hero-account-card{padding:22px 21px 18px!important}.hero-balance{font-size:34px!important}.security-art{opacity:.58;right:-15px}}
-</style></head>
+</style><style id="unified-blue-theme">
+:root{--brand-blue:#1455b8;--brand-deep:#0d3b82;--brand-bright:#287cff;--brand-pale:#edf4ff;--brand-line:#dce7f7;--brand-ink:#14213d;--brand-muted:#687894}
+body{color:var(--brand-ink)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline-color:#8ab4f8}
+.brand,.logo{color:var(--brand-blue)}
+.mark,.logo-mark{background:linear-gradient(145deg,#287cff,#0d3b82);color:#fff;border-color:transparent;box-shadow:0 8px 20px #1455b82b}
+.btn,.submit,.primary,.nav-cta,.cta-button{background:linear-gradient(105deg,#1455b8,#287cff);border-color:#1455b8;color:#fff}
+.btn:hover,.submit:hover,.primary:hover,.nav-cta:hover,.cta-button:hover{background:linear-gradient(105deg,#0d3b82,#1455b8)}
+.links a:hover,.text-link,.quick a span,.forgot,.bottom a,.back,.toggle{color:#1455b8}
+input:focus,select:focus,textarea:focus{border-color:#8ab4f8!important;box-shadow:0 0 0 3px #1455b814}
+
+
+
+:root{--red:#1455b8;--red-dark:#0d3b82;--gold:#8ab4f8;--line:#dce7f7;--bg:#f2f6ff;--ink:#14213d;--muted:#687894}
+body{background:linear-gradient(115deg,#f5f8ff,#edf3ff 60%,#e8f0ff)}
+.topbar{border-bottom-color:#dce7f7}
+
+
+</style>
+</head>
 <body data-current-page="overview">
 <header class="topbar">
  <div class="brand-wrap"><span class="brand-logo" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M7 10h10l8 17 8-17h9L27 39h-5z" fill="white"/><path d="M7 10h10l8 17-5 9z" fill="#dceaff" opacity=".9"/></svg></span><strong class="brand-name">Vercel Bank</strong></div>
@@ -599,7 +618,7 @@ async function renderMyTransactions(){
   ];
   const overlay=document.createElement("div");overlay.id="transactionDetailsOverlay";overlay.style.cssText="position:fixed;inset:0;z-index:120;background:rgba(20,18,19,.62);display:grid;place-items:center;padding:16px;overflow:auto";
   const card=document.createElement("section");card.className="transfer-review-card";card.setAttribute("role","dialog");card.setAttribute("aria-modal","true");card.setAttribute("aria-labelledby","transactionDetailsTitle");
-  card.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px"><div><span class="profile-kicker">TRANSACTION DETAILS</span><h2 id="transactionDetailsTitle" style="margin:5px 0 0">Transaction receipt</h2></div><button type="button" id="closeTransactionDetails" aria-label="Close details" style="border:0;background:#f2f2f2;border-radius:50%;width:36px;height:36px;font-size:20px;cursor:pointer">×</button></div><div class="transfer-review-total"><small>'+(outgoing?"Amount debited":"Amount credited")+'</small><strong>'+amount+'</strong></div><div class="transfer-review-rows">'+fields.map(([label,value])=>'<div class="transfer-review-row"><span>'+escapeHtml(label)+'</span><b>'+escapeHtml(value)+'</b></div>').join("")+'</div>'+(row.is_synthetic?'<p style="margin:14px 0 0;color:#68748f;font-size:10px;text-align:right">Simulated transaction · demo ledger only</p>':"")+'<div class="transfer-review-actions" style="grid-template-columns:1fr"><button class="transfer-confirm" type="button" id="transactionDetailsDone">Close</button></div>';
+  card.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px"><div><span class="profile-kicker">TRANSACTION DETAILS</span><h2 id="transactionDetailsTitle" style="margin:5px 0 0">Transaction receipt</h2></div><button type="button" id="closeTransactionDetails" aria-label="Close details" style="border:0;background:#f2f2f2;border-radius:50%;width:36px;height:36px;font-size:20px;cursor:pointer">×</button></div><div class="transfer-review-total"><small>'+(outgoing?"Amount debited":"Amount credited")+'</small><strong>'+amount+'</strong></div><div class="transfer-review-rows">'+fields.map(([label,value])=>'<div class="transfer-review-row"><span>'+escapeHtml(label)+'</span><b>'+escapeHtml(value)+'</b></div>').join("")+'</div>'+""+'<div class="transfer-review-actions" style="grid-template-columns:1fr"><button class="transfer-confirm" type="button" id="transactionDetailsDone">Close</button></div>';
   overlay.appendChild(card);document.body.appendChild(overlay);
   const close=()=>{overlay.remove();document.removeEventListener("keydown",escape)};
   card.querySelector("#closeTransactionDetails").addEventListener("click",close);
