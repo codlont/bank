@@ -520,7 +520,7 @@ async function renderOverviewActivity(){
   const stamp=new Date(row.created_at);
   const date=new Intl.DateTimeFormat("en-US",{month:"short",day:"numeric",year:"numeric"}).format(stamp);
   const time=new Intl.DateTimeFormat("en-US",{hour:"2-digit",minute:"2-digit"}).format(stamp);
-  const description=String(row.description||"").replace(/^Demo transfer to\\s*/i,"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const description=String(row.description||"").replace(/^Demo transfer to\s*/i,"").replace(/^TEST RECORD\s*[·|—-]?\s*/i,"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   const isCard=/card/i.test(row.transaction_type||"")||/card payment/i.test(row.description||"");
   const title=isCard?"Card Payment":(outgoing?"Money Sent":"Money Received");
   const subtitle=isCard?(description||"Card transaction"):(outgoing?"To: ":"From: ")+(description||"Account transfer");
