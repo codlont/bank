@@ -281,14 +281,14 @@ body[data-current-page]:not([data-current-page="overview"]) main{padding-top:cla
 #subView[data-section="transfers"]>.section-title{display:flex!important}
 
 /* Re-trigger deployment for standalone history and transfer page updates. */
-</style>
+.notification-panel{position:fixed;z-index:500;top:86px;right:clamp(12px,4vw,38px);width:min(390px,calc(100vw - 24px));max-height:min(70vh,560px);overflow:auto;background:#fff;border:1px solid #e6eaf2;border-radius:18px;box-shadow:0 18px 55px #10234a24;padding:18px;opacity:0;transform:translateY(-8px);transition:.18s ease}.notification-panel.open{opacity:1;transform:translateY(0)}.notification-panel-head{display:flex;justify-content:space-between;align-items:center;font-size:16px;color:#102044}.notification-panel-head button{width:34px;height:34px;border:0;border-radius:50%;background:#f1f4fa;font-size:22px;color:#334}.notification-panel-empty{min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;color:#1b2b50}.notification-panel-empty span{width:44px;height:44px;border-radius:50%;background:#edf7f0;color:#258052;display:grid;place-items:center;font-size:22px}.notification-panel-empty small{color:#77819a;font-size:12px}@media(max-width:600px){.notification-panel{top:82px;left:12px;right:12px;width:auto;max-height:calc(100dvh - 110px)}}</style>
 <style id="reference-home-design">
 :root{--blue:#0757e8;--navy:#071b62;--ink:#101a35;--muted:#66718d;--line:#e4eafb;--green:#0ca968}
 *{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif!important}
 body{background:radial-gradient(ellipse at 95% 3%,#c9dcff 0,transparent 31%),radial-gradient(ellipse at 4% 44%,#e3ebff 0,transparent 38%),linear-gradient(145deg,#f7f8ff,#e8efff 78%,#f6f8ff)!important;color:var(--ink)}
 .topbar{height:82px!important;padding:0 5.5%!important;background:transparent!important;border:0!important;position:relative!important}
 .brand-wrap{gap:13px!important}.brand-logo{width:48px!important;height:48px!important;border-radius:13px!important;background:linear-gradient(145deg,#1684ff,#0645d8)!important;box-shadow:0 8px 20px #0757e83b!important}.brand-logo svg{width:39px;height:39px}.brand-name{font-size:20px!important;letter-spacing:-.7px!important;color:#0c1736!important;font-weight:800!important}
-.top-right{gap:16px!important}.notification-button{position:relative;width:48px;height:48px;border:0;border-radius:50%;background:rgba(255,255,255,.8);box-shadow:0 5px 18px #1d3b7a12;display:grid;place-items:center;color:#15234a}.notification-button svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.notification-dot{position:absolute;width:11px;height:11px;border-radius:50%;background:#1266ff;right:2px;top:2px;border:2px solid #fff}
+.top-right{gap:16px!important}.notification-button{position:relative;width:48px;height:48px;border:0;border-radius:50%;background:rgba(255,255,255,.8);box-shadow:0 5px 18px #1d3b7a12;display:grid;place-items:center;color:#15234a}.notification-button svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.notification-dot{display:none!important}
 .avatar{width:48px!important;height:48px!important;background:#eaf1ff!important;color:#0757e8!important;font-size:14px!important;font-weight:800!important}
 .layout{display:block!important;min-height:0!important}.sidebar{display:none!important}
 main{max-width:760px!important;padding:24px 5.5% 120px!important;margin:0 auto!important}
@@ -387,7 +387,7 @@ main{max-width:760px!important;padding:24px 5.5% 120px!important;margin:0 auto!i
   </section>
   <div class="quick-grid">
    <button class="quick" data-action="Send Money"><span class="qicon"><svg viewBox="0 0 24 24"><path d="m3 11 18-8-8 18-2-8-8-2zM11 13l10-10"/></svg></span><strong>Send<br>Money</strong></button>
-   <button class="quick" data-action="Transfers"><span class="qicon"><svg viewBox="0 0 24 24"><path d="M4 7h15m-4-4 4 4-4 4M20 17H5m4-4-4 4 4 4"/></svg></span><strong>Transfers</strong></button>
+   <button class="quick" data-action="Account Info"><span class="qicon">▣</span><strong>Account<br>Info</strong></button>
    <button class="quick" data-action="Cards"><span class="qicon"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M3 10h18"/></svg></span><strong>Cards</strong></button>
    <button class="quick" data-action="More"><span class="qicon"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="19" cy="12" r="1.5" fill="currentColor"/></svg></span><strong>More</strong></button>
   </div>
@@ -500,7 +500,7 @@ async function renderMyTransfers(){
  const options=activeAccounts.map(a=>'<option value="'+a.account_number+'">'+(a.account_type==="checking"?"Everyday Checking":"Personal Savings")+' · account ending '+a.account_number.slice(-4)+' · '+money(a.available_balance)+'</option>').join("");
  panel.innerHTML=`
  <section class="transfer-main transfer-only-page">
-  <div class="transfer-intro"><div><span class="transfer-page-kicker">BANK TRANSFERS</span><h3>Send money</h3><p>Enter the recipient's details exactly as registered by the manager, review the transfer, then confirm.</p></div><span class="transfer-secure">◆ Secure transfer</span></div>
+  <div class="transfer-intro"><div><span class="transfer-page-kicker">BANK TRANSFERS</span><h3>Send money</h3></div><span class="transfer-secure">◆ Secure transfer</span></div>
   <form class="transfer-form" id="transferForm">
    <label>From account<select name="fromAccount" required ${activeAccounts.length?"":"disabled"}>${options}</select><span class="transfer-field-hint">Select the account you want to send money from.</span></label>
    <label>Recipient account number<input name="toAccount" id="demoRecipientAccount" inputmode="numeric" autocomplete="off" maxlength="12" pattern="[0-9]{12}" placeholder="Enter 12-digit demo account number" required><span class="transfer-field-hint">Enter the account number created by the manager.</span></label>
@@ -514,7 +514,7 @@ async function renderMyTransfers(){
    </div>
    <label>Amount to send<div class="amount-wrap"><span class="amount-prefix">$</span><input name="amount" type="number" min="0.01" max="1000000" step="0.01" inputmode="decimal" placeholder="0.00" required></div><span class="transfer-field-hint">Available currency: USD</span></label>
    <label>Payment note <span class="transfer-field-hint">Optional · up to 120 characters</span><input name="description" maxlength="120" placeholder="e.g. Rent or personal payment"></label>
-   <div class="transfer-note"><span>ⓘ</span><div>This is a simulated transfer. Only your selected account balance changes; no recipient account is credited and no real payment network is contacted.</div></div>
+   
    <button class="transfer-submit" type="submit" ${activeAccounts.length?"":"disabled"}>Review transfer details&nbsp; →</button>
   </form>
  </section>`;
@@ -642,11 +642,11 @@ function renderMyProfile(){
  '<label>State / Region<input name="state_region" type="text" maxlength="80" autocomplete="address-level1" value="'+esc(customerProfile.state_region)+'"></label>'+
  '<label>Postal code<input name="postal_code" type="text" maxlength="20" autocomplete="postal-code" value="'+esc(customerProfile.postal_code)+'"></label></div>'+
  '<div class="profile-readonly"><span>Email address</span><div><b>'+esc(currentUserEmail||"Not available")+'</b><small>'+(emailVerified?"Your email address has been verified.":"Your email address is not yet verified.")+'</small></div><span class="profile-lock">'+(emailVerified?"✓ Verified":"Pending verification")+'</span></div>'+
- '<div class="profile-form-actions"><span id="profileSaveStatus" role="status">Your changes are saved securely to your profile.</span><button class="profile-save" type="submit" id="profileSave">Save changes&nbsp; →</button></div></form>'+
+ '<div class="profile-form-actions"><span id="profileSaveStatus" role="status">Your changes are saved securely to your profile.</span><span class="profile-lock">Personal details can only be changed by an administrator.</span></div></form>'+
  '<section class="profile-card-form"><div class="profile-card-heading"><div><h3>Email verification</h3><p>Keep your sign-in email verified to protect account access.</p></div><span>IDENTITY</span></div><div class="profile-form-actions"><span id="emailVerifyStatus" role="status">'+(emailVerified?"Your email is verified.":"A verification email can be sent to "+esc(currentUserEmail)+".")+'</span><button class="profile-save secondary" type="button" id="resendVerification" '+(emailVerified?"disabled":"")+'>Resend verification email</button></div></section>'+
  '<section class="profile-card-form security-card"><div class="profile-card-heading"><div><h3>Sign-in security</h3><p>Change the password used to access online banking.</p></div><span>ACCOUNT SECURITY</span></div>'+
  '<form id="passwordForm" class="password-form"><label>New password<input name="new_password" type="password" minlength="8" autocomplete="new-password" required placeholder="At least 8 characters"></label><label>Confirm new password<input name="confirm_password" type="password" minlength="8" autocomplete="new-password" required placeholder="Enter password again"></label><div class="profile-form-actions"><span id="passwordSaveStatus" role="status">Use a unique password you do not use elsewhere.</span><button class="profile-save secondary" type="submit" id="passwordSave">Update password</button></div></form></section>'+
- '<section class="profile-account-meta"><div><small>Customer since</small><b>'+esc(customerProfile.created_at?new Intl.DateTimeFormat("en-US",{month:"long",year:"numeric"}).format(new Date(customerProfile.created_at)):"—")+'</b></div><div><small>Account access</small><b>Authenticated session</b></div><div><small>Last profile update</small><b>'+esc(customerProfile.updated_at?new Intl.DateTimeFormat("en-US",{month:"short",day:"numeric",year:"numeric"}).format(new Date(customerProfile.updated_at)):"—")+'</b></div></section></div>';
+ '</div>';
  if(customerProfile.avatar_path){
   sb.storage.from("profile-photos").createSignedUrl(customerProfile.avatar_path,3600).then(({data,error})=>{
    const avatar=document.getElementById("profileAvatarPreview");if(!error&&data?.signedUrl&&avatar){avatar.innerHTML='<img src="'+esc(data.signedUrl)+'" alt="Profile photo">';avatar.classList.add("has-photo");}
@@ -671,7 +671,13 @@ document.querySelectorAll(".side-link").forEach(b=>b.addEventListener("click",()
 window.addEventListener("hashchange",()=>{const key=location.hash.slice(1);if(Object.prototype.hasOwnProperty.call(sections,key))showSection(key);else if(!key)showSection("overview");});
  // Account balance cards are display-only; tapping the Visa banner does not navigate.
 document.querySelectorAll("[data-goto]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();showSection(a.dataset.goto)}));
-document.getElementById("notificationButton")?.addEventListener("click",()=>{const dot=document.querySelector(".notification-dot");if(dot)dot.style.display="none";toast("You’re all caught up on notifications.");});
+
+
+const notificationButton=document.getElementById("notificationButton");
+let notificationPanel=null;
+function closeNotifications(){if(notificationPanel){notificationPanel.remove();notificationPanel=null;}document.removeEventListener("click",notificationOutside,true);}
+function notificationOutside(e){if(notificationPanel&&!notificationPanel.contains(e.target)&&!notificationButton.contains(e.target))closeNotifications();}
+notificationButton?.addEventListener("click",e=>{e.stopPropagation();if(notificationPanel){closeNotifications();return;}notificationPanel=document.createElement("section");notificationPanel.className="notification-panel";notificationPanel.innerHTML='<div class="notification-panel-head"><strong>Notifications</strong><button type="button" aria-label="Close notifications">×</button></div><div class="notification-panel-empty"><span>✓</span><b>You’re all caught up</b><small>New account updates will appear here.</small></div>';document.body.append(notificationPanel);notificationPanel.querySelector("button").addEventListener("click",closeNotifications);requestAnimationFrame(()=>notificationPanel?.classList.add("open"));setTimeout(()=>document.addEventListener("click",notificationOutside,true),0);});
 document.getElementById("securityLearnMore")?.addEventListener("click",()=>showSection("support"));
 document.querySelectorAll(".mobile-nav-item[data-goto]").forEach(a=>a.addEventListener("click",()=>{document.querySelectorAll(".mobile-nav-item").forEach(x=>x.classList.remove("active"));a.classList.add("active");}));
 
@@ -685,7 +691,7 @@ function openTransferDialog(transfer,receipt){
  const money=new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(transfer.amount);
  const row=(label,value)=>'<div class="transfer-review-row"><span>'+label+'</span><b>'+value+'</b></div>';
  if(receipt){
-  card.innerHTML='<div class="transfer-receipt-mark">✓</div><h2 id="transferDialogTitle" style="text-align:center">Transfer successful</h2><p style="text-align:center">Your demo transfer has been recorded. Only your account balance was changed.</p><div class="transfer-review-total"><small>Amount transferred</small><strong>'+money+'</strong></div><div class="transfer-review-rows">'+row("Transfer method",transfer.transferType||"Domestic wire")+row("From account","•••• "+transfer.fromAccount.slice(-4))+row("Recipient",transfer.recipientName||"Demo recipient")+row("Recipient account",transfer.toAccount)+row("Bank",transfer.recipientBankName||"—")+row("Transfer type",transfer.transferType||"Domestic")+row("Account type",transfer.recipientAccountType||"—")+(transfer.recipientRoutingCode?row(transfer.transferType==="International"?"SWIFT/BIC code":"Routing number",transfer.recipientRoutingCode):"")+row("Reference",transfer.reference)+row("Date",new Date().toLocaleString())+'</div><div class="transfer-review-actions receipt-actions"><button class="transfer-cancel" type="button" id="receiptHome">Go to home</button><button class="transfer-confirm" type="button" id="receiptHistory">View transaction history</button></div>';
+  card.innerHTML='<div class="transfer-receipt-mark">✓</div><h2 id="transferDialogTitle" style="text-align:center">Transfer successful</h2><div class="transfer-review-total"><small>Amount transferred</small><strong>'+money+'</strong></div><div class="transfer-review-rows">'+row("Transfer method",transfer.transferType||"Domestic wire")+row("From account","•••• "+transfer.fromAccount.slice(-4))+row("Recipient",transfer.recipientName||"Demo recipient")+row("Recipient account",transfer.toAccount)+row("Bank",transfer.recipientBankName||"—")+row("Transfer type",transfer.transferType||"Domestic")+row("Account type",transfer.recipientAccountType||"—")+(transfer.recipientRoutingCode?row(transfer.transferType==="International"?"SWIFT/BIC code":"Routing number",transfer.recipientRoutingCode):"")+row("Reference",transfer.reference)+row("Date",new Date().toLocaleString())+'</div><div class="transfer-review-actions receipt-actions"><button class="transfer-cancel" type="button" id="receiptHome">Go to home</button><button class="transfer-confirm" type="button" id="receiptHistory">View transaction history</button></div>';
   card.querySelector("#receiptHome").addEventListener("click",()=>{closeTransferReview();showSection("overview");});
   card.querySelector("#receiptHistory").addEventListener("click",()=>{closeTransferReview();showSection("transactions");});
  }else{
@@ -816,7 +822,7 @@ document.getElementById("subPanel").addEventListener("click",async e=>{
 });
 
 let toastTimer;function toast(message){const t=document.getElementById("toast");t.textContent=message;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),2800)}
-document.querySelectorAll(".quick").forEach(b=>b.addEventListener("click",()=>{const key=b.dataset.action.toLowerCase();const map={transfers:"transfers","send money":"transfers",payments:"payments",cards:"cards",statements:"statements",more:"profile"};showSection(map[key]||"profile")}));
+document.querySelectorAll(".quick").forEach(b=>b.addEventListener("click",()=>{const key=b.dataset.action.toLowerCase();const map={transfers:"transfers","send money":"transfers","account info":"accounts",payments:"payments",cards:"cards",statements:"statements",more:"profile"};showSection(map[key]||"profile")}));
 
 
 
