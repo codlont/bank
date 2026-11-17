@@ -357,12 +357,12 @@ let currentAuthUser=null;
   const initials=fullName.split(" ").filter(Boolean).map(x=>x[0]).join("").slice(0,2).toUpperCase()||"U";
   document.getElementById("welcomeName").textContent=fullName+" 👋";
   try{localStorage.setItem("bankDashboardName:"+user.id,fullName);}catch(cacheError){}
-  document.getElementById("topName")?.textContent=fullName;
-  document.getElementById("profileName")?.textContent=fullName;
-  document.getElementById("profileCardName")?.textContent=fullName;
+  if(document.getElementById("topName"))document.getElementById("topName").textContent=fullName;
+  if(document.getElementById("profileName"))document.getElementById("profileName").textContent=fullName;
+  if(document.getElementById("profileCardName"))document.getElementById("profileCardName").textContent=fullName;
   document.getElementById("topInitial").textContent=initials;
-  document.getElementById("profileInitial")?.textContent=initials;
-  document.getElementById("customerId")?.textContent=user.email||"—";
+  if(document.getElementById("profileInitial"))document.getElementById("profileInitial").textContent=initials;
+  if(document.getElementById("customerId"))document.getElementById("customerId").textContent=user.email||"—";
   const details=document.querySelectorAll(".detail");
   if(details[0]){details[0].querySelector("span").textContent="Email address";details[0].querySelector("b").textContent=profile?.email||user.email||"—";}
   if(details[1]){details[1].querySelector("span").textContent="Phone number";details[1].querySelector("b").textContent=profile?.phone||"Not provided";}
@@ -630,11 +630,11 @@ document.getElementById("subPanel").addEventListener("submit",async e=>{
   const fullName=[data.first_name,data.middle_name,data.last_name].filter(Boolean).join(" ");
   const initials=fullName.split(" ").filter(Boolean).map(x=>x[0]).join("").slice(0,2).toUpperCase()||"U";
   document.getElementById("welcomeName").textContent=fullName+".";
-  document.getElementById("topName")?.textContent=fullName;
-  document.getElementById("profileName")?.textContent=fullName;
-  document.getElementById("profileCardName")?.textContent=fullName;
+  if(document.getElementById("topName"))document.getElementById("topName").textContent=fullName;
+  if(document.getElementById("profileName"))document.getElementById("profileName").textContent=fullName;
+  if(document.getElementById("profileCardName"))document.getElementById("profileCardName").textContent=fullName;
   document.getElementById("topInitial").textContent=initials;
-  document.getElementById("profileInitial")?.textContent=initials;
+  if(document.getElementById("profileInitial"))document.getElementById("profileInitial").textContent=initials;
   status.textContent="Your profile has been updated successfully.";
   button.disabled=false;button.textContent="Saved ✓";
   return;
