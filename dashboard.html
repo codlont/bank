@@ -385,7 +385,7 @@ body{background:linear-gradient(115deg,#f5f8ff,#edf3ff 60%,#e8f0ff)}
 #transactionPinModal button{min-height:48px;border-radius:12px;padding:0 16px;font-weight:700;border:1px solid #dce7f7}
 #transactionPinModal .pin-cancel{background:#f5f8fd;color:#53698c}
 #transactionPinModal .pin-submit{flex:1;background:linear-gradient(105deg,#1455b8,#287cff);border-color:#1455b8;color:#fff}
-#transferReview .transfer-alert{display:flex;gap:13px;align-items:flex-start;margin:14px 0 0;padding:16px;border:1px solid #f4d7dc;border-radius:16px;background:#fff8f8;color:#26334e}
+#transferReview .transfer-alert{position:sticky;top:0;z-index:8;display:flex;gap:13px;align-items:flex-start;margin:12px 0 16px;padding:16px;border:1px solid #f4d7dc;border-radius:16px;background:#fff8f8;color:#26334e;box-shadow:0 8px 22px rgba(120,35,50,.12);scroll-margin-top:8px}
 #transferReview .transfer-alert .alert-icon{width:38px;height:38px;flex:0 0 38px;border-radius:12px;display:grid;place-items:center;background:#fff0f2;color:#b52d43;font-size:19px}
 #transferReview .transfer-alert strong{display:block;margin:1px 0 4px;font-size:14px;color:#92243a}
 #transferReview .transfer-alert p{margin:0;font-size:12px;line-height:1.5;color:#76515a}
@@ -838,7 +838,7 @@ function openTransferDialog(transfer,receipt){
     errorBox.className="transfer-alert";
     errorBox.innerHTML='<span class="alert-icon">'+(blocked?'!':'i')+'</span><div><strong>'+(blocked?'Transfer unavailable':'We couldn’t complete that transfer')+'</strong><p></p></div>';
     errorBox.querySelector("p").textContent=message;
-    if(!errorBox.parentNode)card.querySelector(".transfer-review-actions").before(errorBox);
+    if(!errorBox.parentNode){const heading=card.querySelector("#transferDialogTitle");if(heading)heading.after(errorBox);else card.prepend(errorBox);}card.scrollTop=0;requestAnimationFrame(()=>{card.scrollTop=0;});
     confirm.disabled=false;cancel.disabled=false;confirm.textContent="Confirm transfer";
    }
   });
