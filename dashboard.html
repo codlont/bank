@@ -986,7 +986,7 @@ body.has-mobile-more #fixedSmartsuppLauncher{bottom:calc(88px + env(safe-area-in
 </style>
 <script id="single-fixed-smartsupp-launcher">
 (function(){
- if(document.getElementById("fixedSmartsuppLauncher"))return;
+ document.querySelectorAll("#fixedSmartsuppLauncher").forEach(function(existing,index){if(index>0)existing.remove();});\n  if(document.getElementById("fixedSmartsuppLauncher"))return;
  const button=document.createElement("button");
  button.type="button";button.id="fixedSmartsuppLauncher";
  button.setAttribute("aria-label","Open live chat");button.title="Live chat";
@@ -994,27 +994,15 @@ body.has-mobile-more #fixedSmartsuppLauncher{bottom:calc(88px + env(safe-area-in
  document.body.appendChild(button);
  function positionChatAboveMore(){const mobile=window.matchMedia("(max-width:760px)").matches;const moreNav=document.querySelector(".mobile-bottom-nav,[data-mobile-nav],[data-action=\"More\"]");document.body.classList.toggle("has-mobile-more",mobile&&!!moreNav);}positionChatAboveMore();window.addEventListener("resize",positionChatAboveMore);
  button.addEventListener("click",function(){
-  button.disabled=true;
-  button.setAttribute("aria-busy","true");
-  button.title="Opening live chat…";
-  if(typeof window.smartsupp==="function"){
-   window.smartsupp("chat:show");
-   window.smartsupp("chat:open");
-   window.setTimeout(function(){
-    if(typeof window.smartsupp==="function"){
-     window.smartsupp("chat:show");
-     window.smartsupp("chat:open");
-    }
-    button.disabled=false;
-    button.removeAttribute("aria-busy");
-    button.title="Live chat";
-   },700);
-  }else{
-   button.disabled=false;
-   button.removeAttribute("aria-busy");
-   button.title="Chat is still loading. Please try again.";
-  }
+  if(button.disabled)return;
+  button.disabled=true;button.setAttribute("aria-busy","true");button.title="Opening live chat…";
+  if(typeof window.smartsupp==="function"){window.smartsupp("chat:show");window.smartsupp("chat:open");}
+  else{button.title="Chat is still loading. Please try again.";}
+  window.setTimeout(function(){button.disabled=false;button.removeAttribute("aria-busy");if(button.title!=="Chat is still loading. Please try again.")button.title="Live chat";},450);
  });
+ if(typeof window.smartsupp==="function"){
+  window.smartsupp("on","messenger_close",function(){window.setTimeout(function(){if(typeof window.smartsupp==="function")window.smartsupp("chat:hide");},80);});
+ }
 })();
 </script>
 
