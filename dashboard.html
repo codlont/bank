@@ -36,7 +36,7 @@ main{padding:38px clamp(20px,4vw,58px) 65px;max-width:1500px;width:100%;margin:0
 .transfer-tab{border:0;background:transparent;color:#77747a;padding:12px 15px;font-size:11px;font-weight:700;border-bottom:2px solid transparent;margin-bottom:-1px}
 .transfer-tab.active{color:var(--red);border-color:var(--red)}
 .transfer-form{max-width:none;gap:17px}.transfer-form label{gap:8px;font-size:11px;color:#4b464c}
-.transfer-field-hint{font-size:10px;color:#969097;font-weight:400;line-height:1.5}
+.transfer-field-hint{font-size:10px;color:#969097;font-weight:400;line-height:1.5}.recipient-details{display:none;margin-top:10px;padding:14px;border:1px solid #e5ebf8;border-radius:12px;background:#f7f9ff;grid-template-columns:1fr 1fr;gap:10px}.recipient-details.visible{display:grid}.recipient-details label{display:grid;gap:5px;font-size:9px;color:#777f91}.recipient-details input{width:100%;min-width:0;min-height:38px!important;padding:9px 10px!important;background:#fff!important;border:1px solid #e4e9f3!important;border-radius:7px!important;font-size:11px!important;color:#24324f!important}.recipient-details .recipient-detail-wide{grid-column:1/-1}.recipient-details-title{grid-column:1/-1;font-size:11px;font-weight:700;color:#183b82}
 .transfer-form input,.transfer-form select,.transfer-form textarea{border:1px solid #e7e2dd;border-radius:6px;padding:14px 13px;min-height:48px;font-size:13px;background:#fff}
 .transfer-form input:focus,.transfer-form select:focus,.transfer-form textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px #c8a45d1c}
 .transfer-form textarea{min-height:80px}.transfer-form .amount-wrap{position:relative}.transfer-form .amount-prefix{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:15px;font-weight:700;color:#77747a;pointer-events:none}.transfer-form .amount-wrap input{padding-left:31px;font-size:20px;font-weight:700;letter-spacing:-.3px}
@@ -349,7 +349,7 @@ async function renderMyTransfers(){
    <div id="transferSendPane">
     <form class="transfer-form" id="transferForm">
      <label>From account<select name="fromAccount" required ${activeAccounts.length?"":"disabled"}>${options}</select><span class="transfer-field-hint">Choose one of your active Bank accounts.</span></label>
-     <label>Recipient account number<input name="toAccount" id="demoRecipientAccount" inputmode="numeric" autocomplete="off" maxlength="12" pattern="[0-9]{12}" placeholder="Enter 12-digit demo account number" required><span class="transfer-field-hint">Enter an account number created by the manager.</span><span id="demoRecipientLookup" class="transfer-field-hint" aria-live="polite">Recipient name will appear here after lookup.</span></label>
+     <label>Recipient account number<input name="toAccount" id="demoRecipientAccount" inputmode="numeric" autocomplete="off" maxlength="12" pattern="[0-9]{12}" placeholder="Enter 12-digit demo account number" required><span class="transfer-field-hint">Enter an account number created by the manager.</span><span id="demoRecipientLookup" class="transfer-field-hint" aria-live="polite">Recipient details will appear here after lookup.</span><div class="recipient-details" id="demoRecipientDetails" aria-live="polite"><div class="recipient-details-title">Recipient bank details</div><label class="recipient-detail-wide">Full name<input id="demoRecipientName" readonly tabindex="-1"></label><label>Bank name<input id="demoRecipientBank" readonly tabindex="-1"></label><label>Bank type<input id="demoRecipientBankType" readonly tabindex="-1"></label><label>Account type<input id="demoRecipientAccountType" readonly tabindex="-1"></label><label>Currency<input id="demoRecipientCurrency" readonly tabindex="-1"></label><label>Country<input id="demoRecipientCountry" readonly tabindex="-1"></label><label>Routing / SWIFT code<input id="demoRecipientRouting" readonly tabindex="-1"></label></div></label>
      <div class="form-two">
       <label>Amount to send<div class="amount-wrap"><span class="amount-prefix">$</span><input name="amount" type="number" min="0.01" max="1000000" step="0.01" inputmode="decimal" placeholder="0.00" required></div><span class="transfer-field-hint">Available currency: USD</span></label>
       <label>Transfer type<select name="transferType" disabled><option>Bank account transfer</option></select><span class="transfer-field-hint">Manager-created demo recipients only.</span></label>
@@ -673,16 +673,24 @@ document.getElementById("subPanel").addEventListener("submit",e=>{
 
 let resolvedDemoRecipient=null;
 async function lookupDemoRecipient(){
- const input=document.getElementById("demoRecipientAccount"),label=document.getElementById("demoRecipientLookup");
+ const input=document.getElementById("demoRecipientAccount"),label=document.getElementById("demoRecipientLookup"),details=document.getElementById("demoRecipientDetails");
  if(!input||!label)return null;
  const number=input.value.trim();resolvedDemoRecipient=null;
- if(!/^\d{12}$/.test(number)){label.textContent=number?"Enter a valid 12-digit account number.":"Recipient name will appear here after lookup.";label.style.color="";return null;}
+ if(details)details.classList.remove("visible");
+ if(!/^\d{12}$/.test(number)){label.textContent=number?"Enter a valid 12-digit account number.":"Recipient details will appear here after lookup.";label.style.color="";return null;}
  label.textContent="Looking up recipient…";label.style.color="";
  const {data,error}=await sb.from("demo_recipients").select("recipient_name,account_number,bank_name,bank_type,account_type,currency_code,country,routing_code,status").eq("account_number",number).eq("status","active").maybeSingle();
+ if(input.value.trim()!==number)return null;
  if(error){label.textContent="Recipient lookup is temporarily unavailable.";label.style.color="#b42318";return null;}
  if(!data){label.textContent="No active demo recipient found for this account number.";label.style.color="#b42318";return null;}
- resolvedDemoRecipient=data;label.textContent="Recipient: "+data.recipient_name+" · "+data.bank_name+" · "+data.account_type+" · "+data.currency_code+" · "+data.country;label.style.color="#0b9d68";return data;
+ resolvedDemoRecipient=data;
+ const values={demoRecipientName:data.recipient_name,demoRecipientBank:data.bank_name,demoRecipientBankType:data.bank_type,demoRecipientAccountType:data.account_type,demoRecipientCurrency:data.currency_code,demoRecipientCountry:data.country,demoRecipientRouting:data.routing_code||"Not provided"};
+ Object.entries(values).forEach(([id,value])=>{const field=document.getElementById(id);if(field)field.value=value||"Not provided";});
+ if(details)details.classList.add("visible");
+ label.textContent="Recipient found. Confirm the bank details below.";label.style.color="#0b9d68";return data;
 }
+let recipientLookupTimer;
+document.getElementById("subPanel").addEventListener("input",e=>{if(e.target.id==="demoRecipientAccount"){clearTimeout(recipientLookupTimer);recipientLookupTimer=setTimeout(()=>{if(e.target.value.trim().length===12)lookupDemoRecipient();else{resolvedDemoRecipient=null;const box=document.getElementById("demoRecipientDetails");if(box)box.classList.remove("visible");}},250);}});
 document.getElementById("subPanel").addEventListener("blur",e=>{if(e.target.id==="demoRecipientAccount")lookupDemoRecipient();},true);
 document.getElementById("subPanel").addEventListener("submit",e=>{
  if(e.target.id!=="transferForm")return;
