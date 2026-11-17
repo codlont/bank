@@ -350,7 +350,7 @@ async function renderMyTransactions(){
    const date=formatDate(row.created_at);
    const amount=new Intl.NumberFormat("en-US",{style:"currency",currency:row.currency_code||"USD"}).format(Number(row.amount||0));
    const status=escapeHtml(String(row.status||"completed").toUpperCase());
-   return '<article class="transfer-item" role="button" tabindex="0" data-transaction-index="'+index+'" aria-label="View details for '+escapeHtml(kind)+' '+amount+'"><span class="transfer-item-icon '+(outgoing?"":"in")+'">'+(outgoing?"↗":"↙")+'</span><div class="transfer-item-copy"><strong>'+escapeHtml(kind)+'</strong><small>'+escapeHtml(date)+' · Ref '+escapeHtml(row.reference||"Pending")+(row.description?" · "+escapeHtml(row.description):"")+'</small></div><div class="transfer-item-amount '+(outgoing?"out":"in")+'">'+(outgoing?"−":"+")+amount+'<small>'+status+'</small></div></article>';
+   return '<article class="transfer-item" role="button" tabindex="0" data-transaction-index="'+rows.indexOf(row)+'" aria-label="View details for '+escapeHtml(kind)+' '+amount+'"><span class="transfer-item-icon '+(outgoing?"":"in")+'">'+(outgoing?"↗":"↙")+'</span><div class="transfer-item-copy"><strong>'+escapeHtml(kind)+'</strong><small>'+escapeHtml(date)+' · Ref '+escapeHtml(row.reference||"Pending")+(row.description?" · "+escapeHtml(row.description):"")+'</small></div><div class="transfer-item-amount '+(outgoing?"out":"in")+'">'+(outgoing?"−":"+")+amount+'<small>'+status+'</small></div></article>';
   }).join("");
  };
  render();
