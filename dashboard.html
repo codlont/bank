@@ -702,7 +702,10 @@ function openTransferDialog(transfer,receipt){
    const confirm=card.querySelector("#transferConfirm"),cancel=card.querySelector("#transferCancel");
    confirm.disabled=true;cancel.disabled=true;confirm.textContent="Processing…";
    try{
-    const response=await sb.rpc("make_demo_recipient_transfer",{p_from_account_number:transfer.fromAccount,p_recipient_account_number:transfer.toAccount,p_amount:transfer.amount,p_description:(transfer.transferType+" · "+(transfer.description||""))});
+    const transactionPin=window.prompt("Enter the transaction PIN assigned to this account.");
+    if(transactionPin===null){confirm.disabled=false;cancel.disabled=false;confirm.textContent="Confirm transfer";return;}
+    if(!/^[0-9]{4,6}$/.test(transactionPin)){throw new Error("Enter your 4–6 digit transaction PIN.");}
+    const response=await sb.rpc("make_demo_recipient_transfer",{p_from_account_number:transfer.fromAccount,p_recipient_account_number:transfer.toAccount,p_amount:transfer.amount,p_description:(transfer.transferType+" · "+(transfer.description||"")),p_transaction_pin:transactionPin});
     if(response.error)throw response.error;
     const result=Array.isArray(response.data)?response.data[0]:response.data;
     if(!result||result.success===false)throw new Error(result?.message||"The transfer service did not confirm this transaction.");
