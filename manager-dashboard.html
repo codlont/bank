@@ -84,7 +84,7 @@ input:focus,select:focus,textarea:focus{border-color:#8ab4f8!important;box-shado
  <form id="recipient-form" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:18px">
   <label style="font-size:12px;font-weight:700">Recipient full name<input id="recipient-name" maxlength="100" required placeholder="e.g. Jordan Taylor" class="recipient-input"></label>
   <label style="font-size:12px;font-weight:700">Account number (12 digits)<input id="recipient-number" inputmode="numeric" pattern="[0-9]{12}" maxlength="12" minlength="12" required placeholder="Unique 12-digit number" class="recipient-input"></label>
-  <label style="font-size:12px;font-weight:700">Bank name<div class="bank-picker"><select id="recipient-bank-name" class="recipient-input" required><option value="Vercel Bank">Vercel Bank</option></select><button type="button" class="bank-search-trigger" data-bank-search="recipient-bank-name" aria-label="Search US banks" title="Search US banks">⌕</button></div></label>
+  <div class="bank-field"><label for="recipient-bank-name" style="font-size:12px;font-weight:700">Bank name</label><div class="bank-picker"><select id="recipient-bank-name" class="recipient-input" required><option value="Vercel Bank">Vercel Bank</option></select><button type="button" class="bank-search-trigger" data-bank-search="recipient-bank-name" aria-label="Search US banks" title="Search US banks">⌕</button></div></div>
   <label style="font-size:12px;font-weight:700">Transfer type<select id="recipient-transfer-type" class="recipient-input" required><option value="Domestic">Domestic</option><option value="International">International</option></select></label>
   <label style="font-size:12px;font-weight:700">Account type<select id="recipient-account-type" class="recipient-input"><option>Checking</option><option>Savings</option><option>Current</option><option>Business</option></select></label>
   <label style="font-size:12px;font-weight:700"><span id="recipient-identifier-label">US routing number (9 digits)</span><input id="recipient-routing" inputmode="numeric" pattern="[0-9]{9}" maxlength="9" minlength="9" required placeholder="Enter 9-digit routing number" class="recipient-input"></label>
@@ -290,7 +290,7 @@ html{width:100%;max-width:100%;overflow-x:hidden;-webkit-text-size-adjust:100%;}
    status.append(message,retry);
   }finally{loading=false;}
  }
- document.querySelectorAll('[data-bank-search]').forEach(button=>button.addEventListener('click',async()=>{
+ document.querySelectorAll('[data-bank-search]').forEach(button=>button.addEventListener('click',async(event)=>{event.preventDefault();event.stopPropagation();
   target=button.dataset.bankSearch;
   modal.classList.add('open');
   modal.setAttribute('aria-hidden','false');
@@ -304,6 +304,64 @@ html{width:100%;max-width:100%;overflow-x:hidden;-webkit-text-size-adjust:100%;}
  input.addEventListener('input',render);
  load();
 })();
-</script></body></html>
+</script>
+<style id="manager-feature-pages">
+.manager-feature-home{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:15px;margin:22px 0 28px}
+.manager-feature-card{appearance:none;text-align:left;display:flex;align-items:flex-start;gap:14px;padding:19px;border:1px solid #e1e9fa;border-radius:17px;background:#fff;box-shadow:0 8px 24px #233d7408;cursor:pointer;min-height:112px;color:#14213d}
+.manager-feature-card:active{transform:scale(.99)}
+.manager-feature-icon{width:43px;height:43px;flex:0 0 43px;border-radius:13px;display:grid;place-items:center;background:#edf4ff;color:#1455b8;font-size:21px;font-weight:800}
+.manager-feature-card strong{display:block;font-size:14px;margin:2px 0 6px;color:#14213d}
+.manager-feature-card small{display:block;font-size:11px;line-height:1.55;color:#687894}
+.manager-page{display:none;min-width:0}
+.manager-page.active{display:block}
+.manager-page-top{display:flex;align-items:center;gap:12px;margin:2px 0 20px}
+.manager-back{border:1px solid #dce7f7;background:#fff;color:#1455b8;border-radius:10px;padding:10px 14px;font-size:12px;font-weight:800;cursor:pointer}
+.manager-page-label{font-size:11px;font-weight:800;letter-spacing:.12em;color:#687894;text-transform:uppercase}
+.manager-page .stat{margin:0!important}
+.manager-page .toolbar{margin-top:0}
+.manager-page .audit{margin-top:0}
+@media(max-width:560px){.manager-feature-home{grid-template-columns:1fr 1fr;gap:10px}.manager-feature-card{padding:14px;gap:10px;min-height:126px}.manager-feature-icon{width:36px;height:36px;flex-basis:36px;border-radius:11px}.manager-feature-card strong{font-size:12px}.manager-feature-card small{font-size:10px}.manager-page-top{margin-bottom:15px}}
+</style>
+<script id="manager-feature-page-controller">
+(function(){
+ const main=document.querySelector('main');if(!main||main.dataset.featurePagesReady)return;main.dataset.featurePagesReady='1';
+ const heading=main.querySelector('.heading'),stats=main.querySelector('.stats');
+ if(!heading||!stats)return;
+ const children=[...main.children];
+ const recipient=children.find(n=>n.querySelector&&n.querySelector('#recipient-form'));
+ const customerToolbar=children.find(n=>n.querySelector&&n.querySelector('#search'));
+ const customerTable=customerToolbar?children[children.indexOf(customerToolbar)+1]:null;
+ const transactions=children.find(n=>n.querySelector&&n.querySelector('#transaction-search'));
+ const cards=children.find(n=>n.querySelector&&n.querySelector('#card-assign-form'));
+ const support=children.find(n=>n.querySelector&&n.querySelector('#support-inbox'));
+ const generator=children.find(n=>n.querySelector&&n.querySelector('#generator-form'));
+ const notice=children.find(n=>n.classList&&n.classList.contains('notice'));
+ const audit=children.find(n=>n.querySelector&&n.querySelector('#audit'));
+ const home=document.createElement('div');home.id='manager-home';
+ const featureGrid=document.createElement('div');featureGrid.className='manager-feature-home';
+ const pages=document.createElement('div');pages.id='manager-feature-pages';
+ const specs=[
+  ['customers','♙','Customer accounts','Search customers, view balances and manage account restrictions.',[customerToolbar,customerTable]],
+  ['recipients','＋','Recipient directory','Create, review and activate demo transfer recipients.',[recipient]],
+  ['transactions','⇄','Transaction management','Find, edit or delete transaction history entries.',[transactions]],
+  ['cards','▣','Bank cards','Assign demo cards and manage card status.',[cards]],
+  ['support','✉','Customer support','Read customer messages, reply and update request status.',[support]],
+  ['generator','⌁','Activity generator','Create clearly identified historical demo activity.',[generator]],
+  ['activity','◷','Management activity','Review recent manager actions and account change notices.',[notice,audit]]
+ ];
+ const pageMap={};
+ specs.forEach(([id,icon,title,desc,nodes])=>{
+  const card=document.createElement('button');card.type='button';card.className='manager-feature-card';card.innerHTML='<span class="manager-feature-icon">'+icon+'</span><span><strong>'+title+'</strong><small>'+desc+'</small></span>';card.addEventListener('click',()=>show(id));featureGrid.appendChild(card);
+  const page=document.createElement('section');page.className='manager-page';page.dataset.managerPage=id;
+  const top=document.createElement('div');top.className='manager-page-top';const back=document.createElement('button');back.type='button';back.className='manager-back';back.textContent='← Management home';back.addEventListener('click',()=>show('home'));const label=document.createElement('span');label.className='manager-page-label';label.textContent=title;top.append(back,label);page.appendChild(top);
+  nodes.filter(Boolean).forEach(node=>page.appendChild(node));pages.appendChild(page);pageMap[id]=page;
+ });
+ home.appendChild(stats);home.appendChild(featureGrid);
+ const refresh=heading.querySelector('#refresh');if(refresh)refresh.textContent='↻ Refresh data';
+ main.appendChild(home);main.appendChild(pages);
+ function show(id){home.style.display=id==='home'?'block':'none';Object.entries(pageMap).forEach(([key,page])=>page.classList.toggle('active',key===id));heading.querySelector('h1').textContent=id==='home'?'Management overview':(specs.find(x=>x[0]===id)||[])[2]||'Management';heading.querySelector('.eyebrow').textContent=id==='home'?'MANAGEMENT WORKSPACE':'MANAGEMENT / '+id.toUpperCase();heading.querySelector('p').textContent=id==='home'?'Choose a management feature to open its dedicated workspace.':'Use this dedicated workspace to manage '+(specs.find(x=>x[0]===id)||[])[2]?.toLowerCase()+'.';window.scrollTo({top:0,behavior:'instant'});}
+ show('home');
+})();
+</script><style id="bank-search-mobile-tap-fix">.bank-field{min-width:0}.bank-picker{position:relative;z-index:1}.bank-search-trigger{display:grid;place-items:center;flex:0 0 52px;width:52px;min-width:52px;height:48px;padding:0;font-size:0!important;line-height:1;touch-action:manipulation;-webkit-tap-highlight-color:transparent}.bank-search-trigger:before{content:"";width:15px;height:15px;border:2px solid currentColor;border-radius:50%;display:block;position:relative;transform:translate(-2px,-2px)}.bank-search-trigger:after{content:"";position:absolute;width:8px;height:2px;background:currentColor;transform:translate(7px,8px) rotate(45deg);border-radius:2px}.bank-search-trigger:focus-visible{outline:3px solid #8ab4f8;outline-offset:2px}</style></body></html>
 <!-- Trigger fresh Vercel deployment -->
 <!-- Redeploy trigger: manager dashboard update -->
