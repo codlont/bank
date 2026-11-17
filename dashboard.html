@@ -689,21 +689,42 @@ function openTransferDialog(transfer,receipt){
  const money=new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(transfer.amount);
  const row=(label,value)=>'<div class="transfer-review-row"><span>'+label+'</span><b>'+value+'</b></div>';
  if(receipt){
-  card.innerHTML='<div class="transfer-receipt-mark">✓</div><h2 id="transferDialogTitle" style="text-align:center">Transfer successful</h2><p style="text-align:center">Your demo transfer has been recorded. Only your account balance was changed.</p><div class="transfer-review-total"><small>Amount transferred</small><strong>'+money+'</strong></div><div class="transfer-review-rows">'+row("Transfer method",transfer.transferType||"Domestic wire")+row("From account","•••• "+transfer.fromAccount.slice(-4))+row("Recipient",transfer.recipientName||"Demo recipient")+row("Recipient account",transfer.toAccount)+row("Bank",transfer.recipientBankName||"—")+row("Transfer type",transfer.transferType||"Domestic")+row("Account type",transfer.recipientAccountType||"—")+(transfer.recipientRoutingCode?row(transfer.transferType==="International"?"SWIFT/BIC code":"Routing number",transfer.recipientRoutingCode):"")+row("Reference",transfer.reference)+row("Date",new Date().toLocaleString())+'</div><div class="transfer-review-actions" style="grid-template-columns:1fr"><button class="transfer-confirm" type="button" id="receiptDone">Done</button></div>';
-  card.querySelector("#receiptDone").addEventListener("click",closeTransferReview);
+  card.innerHTML='<div class="transfer-receipt-mark">✓</div><h2 id="transferDialogTitle" style="text-align:center">Transfer successful</h2><p style="text-align:center">Your demo transfer has been recorded. Only your account balance was changed.</p><div class="transfer-review-total"><small>Amount transferred</small><strong>'+money+'</strong></div><div class="transfer-review-rows">'+row("Transfer method",transfer.transferType||"Domestic wire")+row("From account","•••• "+transfer.fromAccount.slice(-4))+row("Recipient",transfer.recipientName||"Demo recipient")+row("Recipient account",transfer.toAccount)+row("Bank",transfer.recipientBankName||"—")+row("Transfer type",transfer.transferType||"Domestic")+row("Account type",transfer.recipientAccountType||"—")+(transfer.recipientRoutingCode?row(transfer.transferType==="International"?"SWIFT/BIC code":"Routing number",transfer.recipientRoutingCode):"")+row("Reference",transfer.reference)+row("Date",new Date().toLocaleString())+'</div><div class="transfer-review-actions receipt-actions"><button class="transfer-cancel" type="button" id="receiptHome">Go to home</button><button class="transfer-confirm" type="button" id="receiptHistory">View transaction history</button></div>';
+  card.querySelector("#receiptHome").addEventListener("click",()=>{closeTransferReview();showSection("overview");});
+  card.querySelector("#receiptHistory").addEventListener("click",()=>{closeTransferReview();showSection("transactions");});
  }else{
   const from=customerAccounts.find(a=>a.account_number===transfer.fromAccount);
   card.innerHTML='<div class="transfer-review-mark">⇄</div><h2 id="transferDialogTitle">Review transfer</h2><div class="transfer-review-total"><small>You are sending</small><strong>'+money+'</strong></div><div class="transfer-review-rows">'+row("Transfer method",transfer.transferType||"Domestic wire")+row("From account",(from?.account_type==="checking"?"Checking":"Savings")+" · •••• "+transfer.fromAccount.slice(-4))+row("Recipient",transfer.recipientName||"Demo recipient")+row("Recipient account",transfer.toAccount)+row("Bank",transfer.recipientBankName||"—")+row("Transfer type",transfer.transferType||"Domestic")+row("Account type",transfer.recipientAccountType||"—")+(transfer.recipientRoutingCode?row(transfer.transferType==="International"?"SWIFT/BIC code":"Routing number",transfer.recipientRoutingCode):"")+row("Payment note",transfer.description||"Not provided")+'</div><div class="transfer-review-actions"><button class="transfer-cancel" type="button" id="transferCancel">Go back</button><button class="transfer-confirm" type="button" id="transferConfirm">Confirm transfer</button></div>';
   card.querySelector("#transferCancel").addEventListener("click",closeTransferReview);
   card.querySelector("#transferConfirm").addEventListener("click",async()=>{
-   const confirm=card.querySelector("#transferConfirm"),cancel=card.querySelector("#transferCancel");confirm.disabled=true;cancel.disabled=true;confirm.textContent="Processing…";
-   const {data:result,error}=await sb.rpc("make_demo_recipient_transfer",{p_from_account_number:transfer.fromAccount,p_recipient_account_number:transfer.toAccount,p_amount:transfer.amount,p_description:(transfer.transferType+" · "+(transfer.description||""))});
-   if(error){toast(error.message||"Transfer could not be completed.");confirm.disabled=false;cancel.disabled=false;confirm.textContent="Confirm transfer";return;}
-   const receiptData={...transfer,recipientName:result.recipient_name,reference:result.reference};
-   closeTransferReview();
-   const {data:updated,error:refreshError}=await sb.from("bank_accounts").select("account_number,account_type,currency_code,available_balance,account_status,created_at").eq("user_id",currentUserId).order("created_at");
-   if(!refreshError&&updated){customerAccounts=updated;document.querySelectorAll("[data-account-card]").forEach(el=>{const account=customerAccounts.find(a=>a.account_type===el.dataset.accountCard);const balance=el.querySelector(".balance[data-amount],.hero-balance[data-amount]");if(account&&balance){balance.dataset.amount=new Intl.NumberFormat("en-US",{style:"currency",currency:account.currency_code||"USD"}).format(Number(account.available_balance));balance.textContent=balancesHidden?"••••••":balance.dataset.amount;}});}
-   await renderMyTransfers();openTransferDialog(receiptData,true);
+   const confirm=card.querySelector("#transferConfirm"),cancel=card.querySelector("#transferCancel");
+   confirm.disabled=true;cancel.disabled=true;confirm.textContent="Processing…";
+   try{
+    const response=await sb.rpc("make_demo_recipient_transfer",{p_from_account_number:transfer.fromAccount,p_recipient_account_number:transfer.toAccount,p_amount:transfer.amount,p_description:(transfer.transferType+" · "+(transfer.description||""))});
+    if(response.error)throw response.error;
+    const result=Array.isArray(response.data)?response.data[0]:response.data;
+    if(!result||result.success===false)throw new Error(result?.message||"The transfer service did not confirm this transaction.");
+    const receiptData={...transfer,recipientName:result.recipient_name||transfer.recipientName||"Recipient",reference:result.reference||result.transaction_reference||""};
+    closeTransferReview();
+    const {data:updated,error:refreshError}=await sb.from("bank_accounts").select("account_number,account_type,currency_code,available_balance,account_status,created_at").eq("user_id",currentUserId).order("created_at");
+    if(!refreshError&&updated){
+     customerAccounts=updated;
+     document.querySelectorAll("[data-account-card]").forEach(el=>{
+      const account=customerAccounts.find(a=>String(a.account_type).toLowerCase()===String(el.dataset.accountCard).toLowerCase());
+      const balance=el.querySelector(".balance[data-amount],.hero-balance[data-amount]");
+      if(account&&balance){const formatted=new Intl.NumberFormat("en-US",{style:"currency",currency:account.currency_code||"USD"}).format(Number(account.available_balance));balance.dataset.amount=formatted;balance.textContent=balancesHidden?"••••••":formatted;}
+     });
+    }else if(refreshError)console.error("Transfer succeeded but balance refresh failed:",refreshError);
+    await renderMyTransfers();openTransferDialog(receiptData,true);
+   }catch(error){
+    console.error("Transfer confirmation failed:",error);
+    const errorBox=card.querySelector("#transferError")||document.createElement("p");
+    errorBox.id="transferError";errorBox.setAttribute("role","alert");
+    errorBox.style.cssText="margin:12px 0 0;padding:12px;border-radius:10px;background:#fff0f0;color:#a32335;font-size:13px;line-height:1.5";
+    errorBox.textContent=error?.message||"Transfer could not be completed. Please try again.";
+    if(!errorBox.parentNode)card.querySelector(".transfer-review-actions").before(errorBox);
+    confirm.disabled=false;cancel.disabled=false;confirm.textContent="Confirm transfer";
+   }
   });
  }
  overlay.append(card);overlay.addEventListener("click",e=>{if(e.target===overlay)closeTransferReview();});document.body.append(overlay);
