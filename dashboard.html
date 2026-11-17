@@ -202,7 +202,7 @@ main{max-width:1440px}
  .account-card.primary .balance{font-size:34px}
 }
 
-@media(max-width:760px){.mobile-menu{display:none!important}.sidebar{display:none!important}.layout{display:block!important;min-height:calc(100vh - 72px)}main{padding-bottom:calc(104px + env(safe-area-inset-bottom))!important}.mobile-bottom-nav{position:fixed!important;left:0!important;right:0!important;bottom:0!important;width:100%!important;min-height:68px;padding:9px 8px calc(9px + env(safe-area-inset-bottom))!important;border-radius:20px 20px 0 0!important;border-left:0!important;border-right:0!important;border-bottom:0!important;z-index:999!important;box-shadow:0 -8px 28px #172c5a16!important;background:rgba(255,255,255,.97)!important;backdrop-filter:blur(20px)!important;-webkit-backdrop-filter:blur(20px)!important}.mobile-nav-item{gap:4px!important;padding:7px 3px!important}.mobile-nav-item span{font-size:21px!important}.mobile-nav-item small{font-size:10px!important}}@media(min-width:761px){.mobile-bottom-nav{display:none!important}}.recipient-details{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:16px;border:1px solid #e2e9f7;border-radius:14px;background:#f7f9ff}.recipient-details input,.recipient-details select{width:100%;min-width:0;min-height:46px;padding:11px 12px;border:1px solid #e1e8f5;border-radius:9px;background:#fff;color:#172343;font:13px 'DM Sans',sans-serif}.recipient-details label{display:grid;gap:7px;font-size:11px;font-weight:650;color:#4c5872}.recipient-details .recipient-detail-wide{grid-column:1/-1}.recipient-details-title{grid-column:1/-1;font-size:12px;font-weight:750;color:#17469b;line-height:1.5}@media(max-width:600px){.recipient-details{grid-template-columns:1fr}.recipient-details .recipient-detail-wide{grid-column:auto}}</style>
+@media(max-width:760px){.mobile-menu{display:none!important}.sidebar{display:none!important}.layout{display:block!important;min-height:calc(100vh - 72px)}main{padding-bottom:calc(104px + env(safe-area-inset-bottom))!important}.mobile-bottom-nav{position:fixed!important;left:0!important;right:0!important;bottom:0!important;width:100%!important;min-height:68px;padding:9px 8px calc(9px + env(safe-area-inset-bottom))!important;border-radius:20px 20px 0 0!important;border-left:0!important;border-right:0!important;border-bottom:0!important;z-index:999!important;box-shadow:0 -8px 28px #172c5a16!important;background:rgba(255,255,255,.97)!important;backdrop-filter:blur(20px)!important;-webkit-backdrop-filter:blur(20px)!important}.mobile-nav-item{gap:4px!important;padding:7px 3px!important}.mobile-nav-item svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.mobile-nav-item small{font-size:10px!important}}@media(min-width:761px){.mobile-bottom-nav{display:none!important}}.recipient-details{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:16px;border:1px solid #e2e9f7;border-radius:14px;background:#f7f9ff}.recipient-details input,.recipient-details select{width:100%;min-width:0;min-height:46px;padding:11px 12px;border:1px solid #e1e8f5;border-radius:9px;background:#fff;color:#172343;font:13px 'DM Sans',sans-serif}.recipient-details label{display:grid;gap:7px;font-size:11px;font-weight:650;color:#4c5872}.recipient-details .recipient-detail-wide{grid-column:1/-1}.recipient-details-title{grid-column:1/-1;font-size:12px;font-weight:750;color:#17469b;line-height:1.5}@media(max-width:600px){.recipient-details{grid-template-columns:1fr}.recipient-details .recipient-detail-wide{grid-column:auto}}</style>
 </head>
 <body>
 <header class="topbar">
@@ -252,7 +252,13 @@ main{max-width:1440px}
  </section>
 </main>
 </div>
-<nav class="mobile-bottom-nav" aria-label="Main navigation"><button class="mobile-nav-item active" data-goto="overview"><span>⌂</span><small>Home</small></button><button class="mobile-nav-item" data-goto="transfers"><span>⇄</span><small>Transfers</small></button><button class="mobile-nav-item" data-goto="transactions"><span>↻</span><small>History</small></button><button class="mobile-nav-item" data-goto="cards"><span>▤</span><small>Cards</small></button><button class="mobile-nav-item" data-goto="profile"><span>♙</span><small>Profile</small></button></nav>
+<nav class="mobile-bottom-nav" aria-label="Main navigation">
+<button class="mobile-nav-item active" data-goto="overview"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1z"/></svg><small>Home</small></button>
+<button class="mobile-nav-item" data-goto="transfers"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h15m-4-4 4 4-4 4M20 17H5m4-4-4 4 4 4"/></svg><small>Transfers</small></button>
+<button class="mobile-nav-item" data-goto="transactions"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16M7 4h.01M7 20h.01"/></svg><small>History</small></button>
+<button class="mobile-nav-item" data-goto="cards"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M3 10h18m-14 5h4"/></svg><small>Cards</small></button>
+<button class="mobile-nav-item" data-goto="profile"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg><small>Profile</small></button>
+</nav>
 <div class="toast" id="toast" role="status"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0"></script>
 <script src="supabase-client.js"></script>
@@ -390,33 +396,6 @@ async function renderMyTransfers(){
  renderRows();
  document.getElementById("transferSearch").addEventListener("input",e=>renderRows(e.target.value));
 }
-async function renderMyWithdrawals(){
- const panel=document.getElementById("subPanel");
- const activeAccounts=customerAccounts.filter(a=>a.account_status==="active");
- const money=(amount,currency="USD")=>new Intl.NumberFormat("en-US",{style:"currency",currency}).format(Number(amount||0));
- if(!activeAccounts.length){panel.innerHTML='<div class="empty"><div class="empty-icon">↓</div><strong>No active account available</strong><p>You need an active account before you can make a withdrawal.</p></div>';return;}
- const options=activeAccounts.map(a=>'<option value="'+a.account_number+'">'+(a.account_type==="checking"?"Everyday Checking":"Personal Savings")+' · ending '+String(a.account_number).slice(-4)+' · '+money(a.available_balance,a.currency_code||"USD")+'</option>').join("");
- panel.innerHTML='<div class="transfer-shell"><section class="transfer-main"><div class="transfer-intro"><div><h3>Withdraw funds</h3><p>Make a simulated cash withdrawal from one of your accounts.</p></div><span class="transfer-secure">● Demo ledger</span></div><form class="transfer-form" id="withdrawForm"><label>From account<select name="accountNumber" required>'+options+'</select><span class="transfer-field-hint">Select the account to debit.</span></label><label>Withdrawal amount<div class="amount-wrap"><span class="amount-prefix">$</span><input name="amount" type="number" min="0.01" max="1000000" step="0.01" inputmode="decimal" placeholder="0.00" required></div><span class="transfer-field-hint">The amount will be deducted from the selected account balance.</span></label><label>Withdrawal note<input name="description" maxlength="120" placeholder="Optional note, e.g. ATM cash withdrawal"></label><div class="transfer-note"><span>ⓘ</span><div>Withdrawals are recorded in your account activity after confirmation.</div></div><button class="transfer-submit" type="submit">Review withdrawal →</button></form></section><aside class="transfer-aside"><h3>Available balances</h3>'+activeAccounts.map(a=>'<div class="transfer-account-mini"><span>'+(a.account_type==="checking"?"Checking":"Savings")+' · •••• '+String(a.account_number).slice(-4)+'</span><b>'+money(a.available_balance,a.currency_code||"USD")+'</b></div>').join("")+'</aside></div>';
- const form=document.getElementById("withdrawForm");
- form.addEventListener("submit",async e=>{
-  e.preventDefault();
-  const data=new FormData(form),accountNumber=String(data.get("accountNumber")||""),amount=Number(data.get("amount")),description=String(data.get("description")||"").trim();
-  const account=customerAccounts.find(a=>a.account_number===accountNumber);
-  if(!account||account.account_status!=="active"){toast("Choose an active account.");return;}
-  if(!Number.isFinite(amount)||amount<=0||Math.round(amount*100)!==amount*100){toast("Enter a valid amount with up to two decimal places.");return;}
-  if(amount>Number(account.available_balance||0)){toast("Insufficient available balance.");return;}
-  const button=form.querySelector("button[type=submit]");button.disabled=true;button.textContent="Processing withdrawal…";
-  const {data:result,error}=await sb.rpc("make_withdrawal",{p_account_number:accountNumber,p_amount:amount,p_description:description||"Cash withdrawal"});
-  if(error){toast(error.message||"Withdrawal could not be completed.");button.disabled=false;button.textContent="Review withdrawal →";return;}
-  const {data:updated,error:refreshError}=await sb.from("bank_accounts").select("account_number,account_type,currency_code,available_balance,account_status,created_at").eq("user_id",currentUserId).order("created_at");
-  if(refreshError||!updated){toast("Withdrawal was submitted, but balances could not refresh. Reload the page.");return;}
-  customerAccounts=updated;
-  await renderOverviewActivity();
-  await renderMyWithdrawals();
-  const reference=typeof result==="string"?result:(result?.reference||result?.transaction_reference||"Recorded");
-  toast("Withdrawal completed. Reference: "+reference);
- });
-}
 async function renderMyTransactions(){
  const panel=document.getElementById("subPanel");
  panel.innerHTML='<div class="transfer-activity transaction-history-list"><div class="transfer-activity-head"><div><h3>Transaction history</h3><p class="transfer-hint">All incoming and outgoing activity across your accounts.</p></div><input class="transfer-search" id="transactionSearch" type="search" placeholder="Search description or reference…" aria-label="Search transactions"></div><div class="transfer-list" id="transactionHistory"><div class="transfer-empty">Loading transaction history…</div></div></div>';
@@ -550,7 +529,7 @@ window.addEventListener("hashchange",()=>{const key=location.hash.slice(1);if(Ob
  });
 document.querySelectorAll("[data-goto]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();showSection(a.dataset.goto)}));
 document.querySelectorAll(".mobile-nav-item[data-goto]").forEach(a=>a.addEventListener("click",()=>{document.querySelectorAll(".mobile-nav-item").forEach(x=>x.classList.remove("active"));a.classList.add("active");}));
-document.querySelector("[data-open-menu]")?.addEventListener("click",()=>toggleBankMenu(true));
+
 let pendingTransfer=null;
 function closeTransferReview(){const existing=document.getElementById("transferReview");if(existing)existing.remove();pendingTransfer=null;}
 
@@ -681,10 +660,10 @@ document.getElementById("subPanel").addEventListener("click",async e=>{
 
 let toastTimer;function toast(message){const t=document.getElementById("toast");t.textContent=message;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),2800)}
 document.querySelectorAll(".quick").forEach(b=>b.addEventListener("click",()=>{const key=b.dataset.action.toLowerCase();const map={transfers:"transfers",payments:"payments",cards:"cards",statements:"statements"};showSection(map[key])}));
-const menuButton=document.getElementById("menuBtn"),sideMenu=document.getElementById("sidebar");
-function toggleBankMenu(force){const open=typeof force==="boolean"?force:!sideMenu.classList.contains("open");sideMenu.classList.toggle("open",open);menuButton.setAttribute("aria-expanded",String(open));menuButton.setAttribute("aria-label",open?"Close banking navigation":"Open banking navigation");menuButton.textContent=open?"×":"☰";}
-menuButton.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();toggleBankMenu();});
-document.addEventListener("click",e=>{if(sideMenu.classList.contains("open")&&!sideMenu.contains(e.target)&&!menuButton.contains(e.target))toggleBankMenu(false);});
+
+
+
+
 
 </script>
 <script>
