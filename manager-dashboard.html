@@ -424,6 +424,47 @@ aside{position:sticky;top:78px;height:calc(100vh - 78px);overflow-y:auto;padding
  }
  show('overview');
 })();
-</script><style id="bank-search-mobile-tap-fix">.bank-field{min-width:0}.bank-picker{position:relative;z-index:1}.bank-search-trigger{display:grid;place-items:center;flex:0 0 52px;width:52px;min-width:52px;height:48px;padding:0;font-size:0!important;line-height:1;touch-action:manipulation;-webkit-tap-highlight-color:transparent}.bank-search-trigger:before{content:"";width:15px;height:15px;border:2px solid currentColor;border-radius:50%;display:block;position:relative;transform:translate(-2px,-2px)}.bank-search-trigger:after{content:"";position:absolute;width:8px;height:2px;background:currentColor;transform:translate(7px,8px) rotate(45deg);border-radius:2px}.bank-search-trigger:focus-visible{outline:3px solid #8ab4f8;outline-offset:2px}</style></body></html>
+</script><style id="bank-search-mobile-tap-fix">.bank-field{min-width:0}.bank-picker{position:relative;z-index:1}.bank-search-trigger{display:grid;place-items:center;flex:0 0 52px;width:52px;min-width:52px;height:48px;padding:0;font-size:0!important;line-height:1;touch-action:manipulation;-webkit-tap-highlight-color:transparent}.bank-search-trigger:before{content:"";width:15px;height:15px;border:2px solid currentColor;border-radius:50%;display:block;position:relative;transform:translate(-2px,-2px)}.bank-search-trigger:after{content:"";position:absolute;width:8px;height:2px;background:currentColor;transform:translate(7px,8px) rotate(45deg);border-radius:2px}.bank-search-trigger:focus-visible{outline:3px solid #8ab4f8;outline-offset:2px}</style>
+<style id="manager-compact-fit-fix">
+/* Keep the manager workspace fitted to the device viewport without browser zoom. */
+html,body{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
+body{zoom:1;-webkit-text-size-adjust:100%;touch-action:pan-y}
+.layout{width:100%;max-width:100%;min-width:0;grid-template-columns:220px minmax(0,1fr)!important}
+main{width:100%;min-width:0;max-width:none;overflow-x:hidden;padding-left:clamp(14px,2.5vw,30px)!important;padding-right:clamp(14px,2.5vw,30px)!important}
+.manager-workspace-home{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:16px 0}
+.manager-workspace-card{min-width:0;min-height:94px;padding:14px;gap:10px;border-radius:13px}
+.manager-workspace-card .card-icon{width:34px;height:34px;flex:0 0 34px;border-radius:10px;font-size:17px}
+.manager-workspace-card strong{font-size:12px;line-height:1.3;margin:2px 0 5px}
+.manager-workspace-card small{font-size:10px;line-height:1.4}
+.manager-nav-list{min-width:0}
+.manager-nav-button{min-width:0;padding:9px 10px;gap:8px;font-size:11px}
+.manager-nav-button .nav-icon{width:27px;height:27px;flex:0 0 27px}
+.manager-workspace-page,.manager-workspace-page>*{min-width:0;max-width:100%}
+.manager-workspace-page .tablewrap{max-width:100%;overflow-x:auto}
+@media(max-width:850px){
+ .layout{display:flex!important;flex-direction:column}
+ aside{width:100%;max-width:100%;height:auto;min-width:0;padding:9px 12px!important}
+ .manager-nav-list{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;width:100%;overflow:visible;padding:0}
+ .manager-nav-button{width:100%;min-width:0;justify-content:center;gap:5px;padding:7px 4px;white-space:normal;font-size:10px;line-height:1.15;text-align:center;flex-direction:column;border-radius:9px}
+ .manager-nav-button .nav-icon{width:24px;height:24px;flex-basis:24px;font-size:14px}
+ main{padding:17px 13px 35px!important}
+ .manager-workspace-home{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:12px 0}
+ .manager-workspace-card{min-height:82px;padding:10px;gap:8px}
+ .manager-workspace-card .card-icon{width:29px;height:29px;flex-basis:29px;font-size:15px}
+ .manager-workspace-card strong{font-size:11px}
+ .manager-workspace-card small{font-size:9px;line-height:1.35}
+ .manager-overview-intro{font-size:11px;margin-bottom:12px}
+}
+@media(max-width:390px){
+ .top{padding-left:11px!important;padding-right:11px!important}
+ .brand{font-size:12px!important;gap:8px!important}
+ .mark{width:32px!important;height:32px!important}
+ .logout{padding:8px 10px!important;font-size:10px!important}
+ .manager-nav-list{grid-template-columns:repeat(4,minmax(0,1fr))}
+ .manager-nav-button{font-size:9px;padding:6px 2px}
+ .manager-workspace-card{padding:9px;gap:6px}
+ .manager-workspace-card .card-icon{width:26px;height:26px;flex-basis:26px}
+}
+</style></body></html>
 <!-- Trigger fresh Vercel deployment -->
 <!-- Redeploy trigger: manager dashboard update -->
