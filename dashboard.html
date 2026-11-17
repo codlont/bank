@@ -457,12 +457,12 @@ let currentAuthUser=null;
    if(card){const status=card.querySelector(".card-top span");if(status)status.textContent=type.toUpperCase()+" ACCOUNT · "+String(account.account_status).toUpperCase();}
   });
   
-  renderOverviewActivity();
   const hashSection=location.hash.replace(/^#/,"");
   let storedSection="";
   try{storedSection=localStorage.getItem("bankDashboardSection")||"";}catch(storageError){}
   const savedSection=Object.prototype.hasOwnProperty.call(sections,hashSection)?hashSection:storedSection;
   if(savedSection && Object.prototype.hasOwnProperty.call(sections,savedSection)) showSection(savedSection);
+  renderOverviewActivity();
  }catch(err){
   console.error("Unable to load customer banking data:",err);
   toast("We couldn't load your account details. Please refresh.");
@@ -710,7 +710,7 @@ function openTransferDialog(transfer,receipt){
  const money=new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(transfer.amount);
  const row=(label,value)=>'<div class="transfer-review-row"><span>'+label+'</span><b>'+value+'</b></div>';
  if(receipt){
-  card.innerHTML='<div class="transfer-receipt-mark">✓</div><h2 id="transferDialogTitle" style="text-align:center">Transfer successful</h2><div class="transfer-review-total"><small>Amount transferred</small><strong>'+money+'</strong></div><div class="transfer-review-rows">'+row("Transfer method",transfer.transferType||"Domestic wire")+row("From account","•••• "+transfer.fromAccount.slice(-4))+row("Recipient",transfer.recipientName||"Demo recipient")+row("Recipient account",transfer.toAccount)+row("Bank",transfer.recipientBankName||"—")+row("Transfer type",transfer.transferType||"Domestic")+row("Account type",transfer.recipientAccountType||"—")+(transfer.recipientRoutingCode?row(transfer.transferType==="International"?"SWIFT/BIC code":"Routing number",transfer.recipientRoutingCode):"")+row("Reference",transfer.reference)+row("Date",new Date().toLocaleString())+'</div><div class="transfer-review-actions receipt-actions"><button class="transfer-cancel" type="button" id="receiptHome">Go to home</button><button class="transfer-confirm" type="button" id="receiptHistory">View transaction history</button></div>';
+  const isOnlinePayment=/online|merchant|bill payment/i.test(transfer.transferType||"");const receiptRows=isOnlinePayment?row("From account","•••• "+transfer.fromAccount.slice(-4))+row("Company",transfer.recipientBankName||transfer.companyName||transfer.recipientName||"Merchant")+row("Reference",transfer.reference)+row("Date",new Date().toLocaleString()):row("From account","•••• "+transfer.fromAccount.slice(-4))+row("To",transfer.recipientName||"Demo recipient")+row("Account number",transfer.toAccount)+row("Bank",transfer.recipientBankName||"—")+row("Transfer type",transfer.transferType||"Domestic")+row("Account type",transfer.recipientAccountType||"—")+(transfer.recipientRoutingCode?row(transfer.transferType==="International"?"SWIFT/BIC code":"Routing number",transfer.recipientRoutingCode):"")+row("Reference",transfer.reference)+row("Date",new Date().toLocaleString());card.innerHTML='<div class="transfer-receipt-mark">✓</div><h2 id="transferDialogTitle" style="text-align:center">'+(isOnlinePayment?'Payment successful':'Transfer successful')+'</h2><div class="transfer-review-total"><small>'+(isOnlinePayment?'Amount paid':'Amount transferred')+'</small><strong>'+money+'</strong></div><div class="transfer-review-rows">'+receiptRows+'</div><div class="transfer-review-actions receipt-actions"><button class="transfer-cancel" type="button" id="receiptHome">Go to home</button><button class="transfer-confirm" type="button" id="receiptHistory">View transaction history</button></div>';
   card.querySelector("#receiptHome").addEventListener("click",()=>{closeTransferReview();showSection("overview");});
   card.querySelector("#receiptHistory").addEventListener("click",()=>{closeTransferReview();showSection("transactions");});
  }else{
