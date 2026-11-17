@@ -341,6 +341,7 @@ async function renderMyTransactions(){
  if(error){list.innerHTML='<div class="transfer-empty">Transaction history is temporarily unavailable. Please try again later.</div>';return;}
  const escapeHtml=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
  const formatDate=value=>value?new Intl.DateTimeFormat("en-US",{month:"long",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit",second:"2-digit"}).format(new Date(value)):"—";
+ const cleanDescription=value=>String(value??"").replace(/\\b(?:simulated\\s+)?test\\s+record\\b/ig,"").replace(/\\s*[·|—-]\\s*/g," ").replace(/\\s{2,}/g," ").trim()||"—";
  const senderNames=["Alex Morgan","Jordan Taylor","Casey Bennett","Riley Carter","Morgan Ellis","Cameron Brooks","Avery Parker","Jamie Collins","Drew Mitchell","Taylor Reed","Blake Foster","Quinn Hayes"];
  const stableSeed=value=>{let h=2166136261;for(const ch of String(value||"transaction")){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);}return h>>>0;};
  const randomFrom=row=>{
@@ -359,7 +360,7 @@ async function renderMyTransactions(){
    const date=formatDate(row.created_at);
    const amount=new Intl.NumberFormat("en-US",{style:"currency",currency:row.currency_code||"USD"}).format(Number(row.amount||0));
    const status=escapeHtml(String(row.status||"completed").toUpperCase());
-   return '<article class="transfer-item" role="button" tabindex="0" data-transaction-index="'+rows.indexOf(row)+'" aria-label="View details for '+escapeHtml(kind)+' '+amount+'"><span class="transfer-item-icon '+(outgoing?"":"in")+'">'+(outgoing?"↗":"↙")+'</span><div class="transfer-item-copy"><strong>'+escapeHtml(kind)+'</strong><small>'+escapeHtml(date)+' · Ref '+escapeHtml(row.reference||"Pending")+(row.description?" · "+escapeHtml(row.description):"")+'</small></div><div class="transfer-item-amount '+(outgoing?"out":"in")+'">'+(outgoing?"−":"+")+amount+'<small>'+status+'</small></div></article>';
+   return '<article class="transfer-item" role="button" tabindex="0" data-transaction-index="'+rows.indexOf(row)+'" aria-label="View details for '+escapeHtml(kind)+' '+amount+'"><span class="transfer-item-icon '+(outgoing?"":"in")+'">'+(outgoing?"↗":"↙")+'</span><div class="transfer-item-copy"><strong>'+escapeHtml(kind)+'</strong><small>'+escapeHtml(date)+' · Ref '+escapeHtml(row.reference||"Pending")+(row.description?" · "+escapeHtml(cleanDescription(row.description)):"")+'</small></div><div class="transfer-item-amount '+(outgoing?"out":"in")+'">'+(outgoing?"−":"+")+amount+'<small>'+status+'</small></div></article>';
   }).join("");
  };
  render();
@@ -374,11 +375,10 @@ async function renderMyTransactions(){
    ["Reference",row.reference||"—"],
    ["Amount",amount],
    ["Currency",row.currency_code||"USD"],
-   ["Description",row.description||"—"],
+   ["Description",cleanDescription(row.description)],
    ["Direction",outgoing?"Money out":"Money in"],
    ["From",randomFrom(row)],
-   ["From account",row.sender_account_number||"—"],
-   ["To account",row.recipient_account_number||"—"]
+
   ];
   const overlay=document.createElement("div");overlay.id="transactionDetailsOverlay";overlay.style.cssText="position:fixed;inset:0;z-index:120;background:rgba(20,18,19,.62);display:grid;place-items:center;padding:16px;overflow:auto";
   const card=document.createElement("section");card.className="transfer-review-card";card.setAttribute("role","dialog");card.setAttribute("aria-modal","true");card.setAttribute("aria-labelledby","transactionDetailsTitle");
