@@ -122,6 +122,7 @@ button{touch-action:manipulation}
  <button class="side-link active" data-section="overview"><span class="ico">▦</span>Overview</button>
  <button class="side-link" data-section="accounts"><span class="ico">▣</span>My accounts</button>
  <button class="side-link" data-section="transfers"><span class="ico">⇄</span>Transfers</button>
+ <button class="side-link" data-section="withdrawals"><span class="ico">↓</span>Withdraw money</button>
  <button class="side-link" data-section="transactions"><span class="ico">↕</span>Transaction history</button>
  <button class="side-link" data-section="payments"><span class="ico">▤</span>Payments & bills</button>
  <button class="side-link" data-section="cards"><span class="ico">▱</span>Cards</button>
@@ -237,7 +238,7 @@ function setBalancesHidden(hidden){
 document.querySelectorAll(".balance-toggle").forEach(btn=>btn.addEventListener("click",()=>setBalancesHidden(!balancesHidden)));
 document.getElementById("today").textContent=new Intl.DateTimeFormat("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"}).format(new Date());
 document.getElementById("logout").addEventListener("click",async()=>{await sb.auth.signOut();location.href="sign-in.html"});
-const sections={overview:["Overview","Your banking overview","Your account summary and recent activity are shown on this page.","▦"],accounts:["My accounts","Account information","Your checking and savings account details will be available in this section.","▣"],transfers:["Transfers","Transfer services","Send money and manage transfer recipients here.","⇄"],transactions:["Transaction history","All account transactions","Review your incoming and outgoing account activity, search records and check transaction details.","↕"],payments:["Payments & bills","Payment services","Bill payment options and payment history will be available in this section.","▤"],cards:["Cards","Card services","Your card information and card management options will be available in this section.","▱"],statements:["Statements","Statements & documents","Your account statements and important banking documents will be available in this section.","▧"],profile:["Profile & settings","Your personal profile","Review your online profile information and account access settings here.","♙"],support:["Help & support","How can we help?","For assistance, visit the Vercel Bank customer support page.","♡"]};
+const sections={overview:["Overview","Your banking overview","Your account summary and recent activity are shown on this page.","▦"],accounts:["My accounts","Account information","Your checking and savings account details will be available in this section.","▣"],transfers:["Transfers","Transfer services","Send money and manage transfer recipients here.","⇄"],transactions:["Transaction history","All account transactions","Review your incoming and outgoing account activity, search records and check transaction details.","↕"],withdrawals:["Withdraw money","Cash withdrawal","Withdraw funds from one of your simulated Bank accounts and automatically record the debit in your transaction history.","↓"],payments:["Payments & bills","Payment services","Bill payment options and payment history will be available in this section.","▤"],cards:["Cards","Card services","Your card information and card management options will be available in this section.","▱"],statements:["Statements","Statements & documents","Your account statements and important banking documents will be available in this section.","▧"],profile:["Profile & settings","Your personal profile","Review your online profile information and account access settings here.","♙"],support:["Help & support","How can we help?","For assistance, visit the Vercel Bank customer support page.","♡"]};
 async function renderMyTransfers(){
  const panel=document.getElementById("subPanel");
  const activeAccounts=customerAccounts.filter(a=>a.account_status==="active");
@@ -303,6 +304,33 @@ async function renderMyTransfers(){
  };
  renderRows();
  document.getElementById("transferSearch").addEventListener("input",e=>renderRows(e.target.value));
+}
+async function renderMyWithdrawals(){
+ const panel=document.getElementById("subPanel");
+ const activeAccounts=customerAccounts.filter(a=>a.account_status==="active");
+ const money=(amount,currency="USD")=>new Intl.NumberFormat("en-US",{style:"currency",currency}).format(Number(amount||0));
+ if(!activeAccounts.length){panel.innerHTML='<div class="empty"><div class="empty-icon">↓</div><strong>No active account available</strong><p>You need an active account before you can make a withdrawal.</p></div>';return;}
+ const options=activeAccounts.map(a=>'<option value="'+a.account_number+'">'+(a.account_type==="checking"?"Everyday Checking":"Personal Savings")+' · ending '+String(a.account_number).slice(-4)+' · '+money(a.available_balance,a.currency_code||"USD")+'</option>').join("");
+ panel.innerHTML='<div class="transfer-shell"><section class="transfer-main"><div class="transfer-intro"><div><h3>Withdraw funds</h3><p>Make a simulated cash withdrawal from one of your accounts.</p></div><span class="transfer-secure">● Demo ledger</span></div><form class="transfer-form" id="withdrawForm"><label>From account<select name="accountNumber" required>'+options+'</select><span class="transfer-field-hint">Select the account to debit.</span></label><label>Withdrawal amount<div class="amount-wrap"><span class="amount-prefix">$</span><input name="amount" type="number" min="0.01" max="1000000" step="0.01" inputmode="decimal" placeholder="0.00" required></div><span class="transfer-field-hint">The amount will be deducted from the selected account balance.</span></label><label>Withdrawal note<input name="description" maxlength="120" placeholder="Optional note, e.g. ATM cash withdrawal"></label><div class="transfer-note"><span>ⓘ</span><div>This is a simulated banking environment. No real bank, ATM, card network or external payment service is connected. A successful withdrawal will reduce the demo balance and add a clearly marked test entry to your transaction history.</div></div><button class="transfer-submit" type="submit">Review withdrawal →</button></form></section><aside class="transfer-aside"><h3>Available balances</h3>'+activeAccounts.map(a=>'<div class="transfer-account-mini"><span>'+(a.account_type==="checking"?"Checking":"Savings")+' · •••• '+String(a.account_number).slice(-4)+'</span><b>'+money(a.available_balance,a.currency_code||"USD")+'</b></div>').join("")+'</aside></div>';
+ const form=document.getElementById("withdrawForm");
+ form.addEventListener("submit",async e=>{
+  e.preventDefault();
+  const data=new FormData(form),accountNumber=String(data.get("accountNumber")||""),amount=Number(data.get("amount")),description=String(data.get("description")||"").trim();
+  const account=customerAccounts.find(a=>a.account_number===accountNumber);
+  if(!account||account.account_status!=="active"){toast("Choose an active account.");return;}
+  if(!Number.isFinite(amount)||amount<=0||Math.round(amount*100)!==amount*100){toast("Enter a valid amount with up to two decimal places.");return;}
+  if(amount>Number(account.available_balance||0)){toast("Insufficient available balance.");return;}
+  const button=form.querySelector("button[type=submit]");button.disabled=true;button.textContent="Processing withdrawal…";
+  const {data:result,error}=await sb.rpc("make_withdrawal",{p_account_number:accountNumber,p_amount:amount,p_description:description||"Cash withdrawal"});
+  if(error){toast(error.message||"Withdrawal could not be completed.");button.disabled=false;button.textContent="Review withdrawal →";return;}
+  const {data:updated,error:refreshError}=await sb.from("bank_accounts").select("account_number,account_type,currency_code,available_balance,account_status,created_at").eq("user_id",currentUserId).order("created_at");
+  if(refreshError||!updated){toast("Withdrawal was submitted, but balances could not refresh. Reload the page.");return;}
+  customerAccounts=updated;
+  await renderOverviewActivity();
+  await renderMyWithdrawals();
+  const reference=typeof result==="string"?result:(result?.reference||result?.transaction_reference||"Recorded");
+  toast("Withdrawal completed. Reference: "+reference);
+ });
 }
 async function renderMyTransactions(){
  const panel=document.getElementById("subPanel");
@@ -385,7 +413,7 @@ function renderDedicatedPage(key){
  panel.innerHTML='<section class="dedicated-page" data-page="'+key+'"><div class="empty-icon">'+page.icon+'</div><span class="eyebrow">'+page.lead.toUpperCase()+'</span><h3>'+page.title+'</h3><p class="dedicated-lead">'+page.body+'</p><div class="dedicated-options">'+page.items.map((item,i)=>'<div class="dedicated-option"><span>'+(i+1).toString().padStart(2,"0")+'</span><b>'+item+'</b></div>').join("")+'</div>'+(key==="support"?'<a class="profile-link" href="support.html">Open customer support →</a>':'')+'</section>';
 }
 
-function showSection(key){if(!Object.prototype.hasOwnProperty.call(sections,key))key="overview";const s=sections[key];try{if(key==="overview")localStorage.removeItem("bankDashboardSection");else localStorage.setItem("bankDashboardSection",key);}catch(storageError){}const nextUrl=key==="overview"?(location.pathname+location.search):(location.pathname+location.search+"#"+key);if(location.pathname+location.search+location.hash!==nextUrl)history.replaceState(null,"",nextUrl);document.querySelectorAll(".side-link").forEach(b=>b.classList.toggle("active",b.dataset.section===key));document.getElementById("overviewView").hidden=key!=="overview";document.getElementById("subView").hidden=key==="overview";document.getElementById("subTitle").textContent=s[0];document.getElementById("sidebar").classList.remove("open");if(key==="accounts")renderMyAccounts();else if(key==="transfers")renderMyTransfers();else if(key==="transactions")renderMyTransactions();else if(key==="profile")renderMyProfile();else if(["payments","cards","statements","support"].includes(key))renderDedicatedPage(key);window.scrollTo({top:0,behavior:"instant"});}
+function showSection(key){if(!Object.prototype.hasOwnProperty.call(sections,key))key="overview";const s=sections[key];try{if(key==="overview")localStorage.removeItem("bankDashboardSection");else localStorage.setItem("bankDashboardSection",key);}catch(storageError){}const nextUrl=key==="overview"?(location.pathname+location.search):(location.pathname+location.search+"#"+key);if(location.pathname+location.search+location.hash!==nextUrl)history.replaceState(null,"",nextUrl);document.querySelectorAll(".side-link").forEach(b=>b.classList.toggle("active",b.dataset.section===key));document.getElementById("overviewView").hidden=key!=="overview";document.getElementById("subView").hidden=key==="overview";document.getElementById("subTitle").textContent=s[0];document.getElementById("sidebar").classList.remove("open");if(key==="accounts")renderMyAccounts();else if(key==="transfers")renderMyTransfers();else if(key==="transactions")renderMyTransactions();else if(key==="withdrawals")renderMyWithdrawals();else if(key==="profile")renderMyProfile();else if(["payments","cards","statements","support"].includes(key))renderDedicatedPage(key);window.scrollTo({top:0,behavior:"instant"});}
 document.querySelectorAll(".side-link").forEach(b=>b.addEventListener("click",()=>showSection(b.dataset.section)));
 window.addEventListener("hashchange",()=>{const key=location.hash.slice(1);if(Object.prototype.hasOwnProperty.call(sections,key))showSection(key);else if(!key)showSection("overview");});
  document.querySelectorAll("[data-account-card]").forEach(card=>{
