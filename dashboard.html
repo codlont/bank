@@ -266,11 +266,11 @@ main{max-width:760px!important;padding:24px 5.5% 120px!important;margin:0 auto!i
  .overview-activity-row>b{font-size:13px!important}
  .security-banner{min-height:124px!important;padding:16px!important;border-radius:22px!important}
  .security-copy strong{font-size:14px!important}.security-copy span{font-size:10px!important}.security-art{right:0;transform:scale(.84);transform-origin:bottom right}
- .mobile-bottom-nav{position:fixed!important;display:flex!important;align-items:center!important;justify-content:space-around!important;gap:2px!important;left:14px!important;right:14px!important;bottom:calc(10px + env(safe-area-inset-bottom))!important;z-index:999!important;padding:9px 7px!important;background:rgba(255,255,255,.94)!important;border:1px solid #e4ebfa!important;border-radius:25px!important;box-shadow:0 12px 35px #142c5a20!important;backdrop-filter:blur(20px)!important}
+ .mobile-bottom-nav{position:fixed!important;display:flex!important;align-items:center!important;justify-content:space-around!important;gap:2px!important;left:0!important;right:0!important;bottom:0!important;width:100%!important;z-index:999!important;padding:11px 8px calc(11px + env(safe-area-inset-bottom))!important;background:rgba(255,255,255,.97)!important;border:1px solid #e4ebfa!important;border-bottom:0!important;border-radius:23px 23px 0 0!important;box-shadow:0 -8px 25px #142c5a13!important;backdrop-filter:blur(20px)!important}
  .mobile-nav-item{border:0!important;background:transparent!important;color:#465270!important;display:flex!important;flex:1!important;min-width:0!important;align-items:center!important;justify-content:center!important;flex-direction:column!important;gap:4px!important;padding:5px 2px!important;border-radius:15px!important}
  .mobile-nav-item svg{width:25px!important;height:25px!important;fill:none!important;stroke:currentColor!important;stroke-width:2!important;stroke-linecap:round!important;stroke-linejoin:round!important}
  .mobile-nav-item small{font-size:10px!important;font-weight:800!important}.mobile-nav-item.active{color:#0757e8!important;background:transparent!important}.mobile-nav-item.active:after{content:"";position:absolute;width:40px;height:4px;border-radius:5px;background:#0757e8;bottom:-7px}
- .toast{bottom:calc(90px + env(safe-area-inset-bottom))!important}
+ .toast{bottom:calc(90px + env(safe-area-inset-bottom))!important}#subView[data-section="transfers"]>.section-title{display:none!important}#subView[data-section="transfers"] #subPanel{padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important}#subView[data-section="transfers"] .transfer-shell{display:block!important;max-width:760px!important;margin:0 auto!important}#subView[data-section="transfers"] .transfer-main{padding:clamp(18px,4vw,30px)!important;border-radius:22px!important;border:1px solid #e4eafb!important;background:rgba(255,255,255,.92)!important;box-shadow:0 12px 30px #183d8a12!important}#subView[data-section="transfers"] .transfer-page-kicker{display:block;color:#0757e8;font-size:10px;font-weight:800;letter-spacing:.16em;margin-bottom:8px}#subView[data-section="transfers"] .transfer-intro h3{font:850 27px Inter,sans-serif!important;color:#101a35!important;letter-spacing:-.8px!important}#subView[data-section="transfers"] .transfer-intro p{color:#66718d!important}#subView[data-section="transfers"] .transfer-form{gap:16px!important}#subView[data-section="transfers"] .transfer-form label{color:#1b2745!important}#subView[data-section="transfers"] .transfer-form input,#subView[data-section="transfers"] .transfer-form select{border-radius:10px!important;border-color:#dfe7f6!important}#subView[data-section="transfers"] .transfer-submit{border-radius:12px!important;background:linear-gradient(100deg,#073cba,#075eea)!important;box-shadow:0 8px 18px #0757e82b!important}
 }
 @media(max-width:390px){.quick-grid{gap:7px!important}.quick{min-height:101px!important}.quick strong{font-size:11px!important}.hero-account-card{padding:22px 21px 18px!important}.hero-balance{font-size:34px!important}.security-art{opacity:.58;right:-15px}}
 </style></head>
@@ -296,7 +296,7 @@ main{max-width:760px!important;padding:24px 5.5% 120px!important;margin:0 auto!i
  <div class="side-bottom"><p>Need assistance with your online banking?</p><a href="support.html" class="profile-link">Visit customer support →</a><button class="logout" id="logout">Log out</button></div>
 </aside>
 <main>
- <section class="welcome"><div><h1><span>Welcome back,</span><strong id="welcomeName">Customer.</strong></h1><p>Here’s an overview of your banking activity.</p></div></section>
+ <section class="welcome"><div><h1><span>Welcome back,</span><strong id="welcomeName" aria-live="polite"></strong></h1><p>Here’s an overview of your banking activity.</p></div></section>
  <div id="overviewView">
   <section class="hero-account-card" data-account-card="checking" role="button" tabindex="0" aria-label="Open checking account details">
    <div class="hero-card-glow"></div>
@@ -343,6 +343,7 @@ let currentAuthUser=null;
  if(error||!user){location.replace("sign-in.html");return}
  currentUserId=user.id;
  currentAuthUser=user;
+ try{const cachedName=localStorage.getItem("bankDashboardName:"+user.id);if(cachedName)document.getElementById("welcomeName").textContent=cachedName+" 👋";}catch(cacheError){}
  try{
   const [{data:profile,error:profileError},{data:accounts,error:accountsError}]=await Promise.all([
    sb.from("profiles").select("first_name,middle_name,last_name,email,phone,country_of_residence,avatar_path,address_line_1,address_line_2,city,state_region,postal_code,created_at,updated_at").eq("id",user.id).maybeSingle(),
@@ -355,12 +356,13 @@ let currentAuthUser=null;
   const fullName=[profile?.first_name,profile?.middle_name,profile?.last_name].filter(Boolean).join(" ").trim()||user.user_metadata?.full_name||user.email?.split("@")[0]||"Customer";
   const initials=fullName.split(" ").filter(Boolean).map(x=>x[0]).join("").slice(0,2).toUpperCase()||"U";
   document.getElementById("welcomeName").textContent=fullName+" 👋";
-  document.getElementById("topName").textContent=fullName;
-  document.getElementById("profileName").textContent=fullName;
-  document.getElementById("profileCardName").textContent=fullName;
+  try{localStorage.setItem("bankDashboardName:"+user.id,fullName);}catch(cacheError){}
+  document.getElementById("topName")?.textContent=fullName;
+  document.getElementById("profileName")?.textContent=fullName;
+  document.getElementById("profileCardName")?.textContent=fullName;
   document.getElementById("topInitial").textContent=initials;
-  document.getElementById("profileInitial").textContent=initials;
-  document.getElementById("customerId").textContent=user.email||"—";
+  document.getElementById("profileInitial")?.textContent=initials;
+  document.getElementById("customerId")?.textContent=user.email||"—";
   const details=document.querySelectorAll(".detail");
   if(details[0]){details[0].querySelector("span").textContent="Email address";details[0].querySelector("b").textContent=profile?.email||user.email||"—";}
   if(details[1]){details[1].querySelector("span").textContent="Phone number";details[1].querySelector("b").textContent=profile?.phone||"Not provided";}
@@ -411,59 +413,37 @@ const sections={overview:["Overview","Your banking overview","Your account summa
 async function renderMyTransfers(){
  const panel=document.getElementById("subPanel");
  const activeAccounts=customerAccounts.filter(a=>a.account_status==="active");
- const money=(n)=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(Number(n||0));
- const total=customerAccounts.reduce((sum,a)=>sum+Number(a.available_balance||0),0);
- if(!customerAccounts.length){panel.innerHTML='<div class="transfer-empty">Your banking accounts could not be found. Refresh the page or contact support.</div>';return;}
+ const money=n=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(Number(n||0));
+ if(!customerAccounts.length){
+  panel.innerHTML='<div class="transfer-empty">Your banking accounts could not be found. Refresh the page or contact support.</div>';
+  return;
+ }
  const options=activeAccounts.map(a=>'<option value="'+a.account_number+'">'+(a.account_type==="checking"?"Everyday Checking":"Personal Savings")+' · account ending '+a.account_number.slice(-4)+' · '+money(a.available_balance)+'</option>').join("");
  panel.innerHTML=`
- <div class="transfer-shell">
-  <section class="transfer-main">
-   <div class="transfer-intro"><div><h3>Send a transfer</h3><p>Enter the recipient details exactly as the manager registered them. Only your account balance is debited in this demo.</p></div><span class="transfer-secure">◆ Secure transfer</span></div>
-   <div class="transfer-tabs"><button type="button" class="transfer-tab active" data-transfer-tab="send">Send money</button><button type="button" class="transfer-tab" data-transfer-tab="activity">Transfer activity</button></div>
-   <div id="transferSendPane">
-    <form class="transfer-form" id="transferForm">
-     <label>From account<select name="fromAccount" required ${activeAccounts.length?"":"disabled"}>${options}</select><span class="transfer-field-hint">Choose one of your active Bank accounts.</span></label>
-     <label>Recipient account number<input name="toAccount" id="demoRecipientAccount" inputmode="numeric" autocomplete="off" maxlength="12" pattern="[0-9]{12}" placeholder="Enter 12-digit demo account number" required><span class="transfer-field-hint">Enter the exact account number created by the manager.</span></label><div class="recipient-details" id="demoRecipientDetails"><div class="recipient-details-title">Enter recipient bank details exactly as registered by the manager</div><label class="recipient-detail-wide">Recipient full name<input name="recipientName" id="demoRecipientName" required placeholder="Full name as registered"></label><label>Bank name<input name="recipientBank" id="demoRecipientBank" required placeholder="Bank name"></label><label>Bank type<select name="recipientBankType" id="demoRecipientBankType" required><option value="">Select bank type</option><option>Commercial Bank</option><option>Digital Bank</option><option>Microfinance Bank</option><option>Credit Union</option><option>Other</option></select></label><label>Account type<select name="recipientAccountType" id="demoRecipientAccountType" required><option value="">Select account type</option><option>Checking</option><option>Savings</option><option>Current</option><option>Business</option></select></label><label>Currency<select name="recipientCurrency" id="demoRecipientCurrency" required><option value="">Select currency</option><option value="USD">USD</option><option value="NGN">NGN</option><option value="GBP">GBP</option><option value="EUR">EUR</option><option value="CAD">CAD</option></select></label><label>Country<input name="recipientCountry" id="demoRecipientCountry" required placeholder="Country"></label><label class="recipient-detail-wide">US routing number<input name="recipientRouting" id="demoRecipientRouting" inputmode="numeric" maxlength="9" pattern="[0-9]{9}" required placeholder="9-digit routing number"></label></div>
-     <div class="form-two">
-      <label>Amount to send<div class="amount-wrap"><span class="amount-prefix">$</span><input name="amount" type="number" min="0.01" max="1000000" step="0.01" inputmode="decimal" placeholder="0.00" required></div><span class="transfer-field-hint">Available currency: USD</span></label>
-      <label>Transfer method<select name="transferType" required><option value="Domestic wire">Domestic wire transfer</option><option value="ACH">ACH transfer</option></select><span class="transfer-field-hint">Choose the US bank transfer rail for this demo.</span></label>
-     </div>
-     <label>Payment note <span class="transfer-field-hint">Optional · up to 120 characters</span><input name="description" maxlength="120" placeholder="e.g. Rent, personal payment, savings"></label>
-     <div class="transfer-note"><span>ⓘ</span><div>This is a simulated transfer. Only your selected account balance changes; the recipient directory entry and any other account balance remain unchanged.</div></div>
-     <button class="transfer-submit" type="submit" ${activeAccounts.length?"":"disabled"}>Review transfer details&nbsp; →</button>
-    </form>
+ <section class="transfer-main transfer-only-page">
+  <div class="transfer-intro"><div><span class="transfer-page-kicker">BANK TRANSFERS</span><h3>Send money</h3><p>Enter the recipient's details exactly as registered by the manager, review the transfer, then confirm.</p></div><span class="transfer-secure">◆ Secure transfer</span></div>
+  <form class="transfer-form" id="transferForm">
+   <label>From account<select name="fromAccount" required ${activeAccounts.length?"":"disabled"}>${options}</select><span class="transfer-field-hint">Select the account you want to send money from.</span></label>
+   <label>Recipient account number<input name="toAccount" id="demoRecipientAccount" inputmode="numeric" autocomplete="off" maxlength="12" pattern="[0-9]{12}" placeholder="Enter 12-digit demo account number" required><span class="transfer-field-hint">Enter the account number created by the manager.</span></label>
+   <div class="recipient-details visible" id="demoRecipientDetails">
+    <div class="recipient-details-title">Recipient bank information</div>
+    <label class="recipient-detail-wide">Recipient full name<input name="recipientName" id="demoRecipientName" required placeholder="Full name as registered"></label>
+    <label>Bank name<input name="recipientBank" id="demoRecipientBank" required placeholder="Bank name"></label>
+    <label>Bank type<select name="recipientBankType" id="demoRecipientBankType" required><option value="">Select bank type</option><option>Commercial Bank</option><option>Digital Bank</option><option>Microfinance Bank</option><option>Credit Union</option><option>Other</option></select></label>
+    <label>Account type<select name="recipientAccountType" id="demoRecipientAccountType" required><option value="">Select account type</option><option>Checking</option><option>Savings</option><option>Current</option><option>Business</option></select></label>
+    <label>Currency<select name="recipientCurrency" id="demoRecipientCurrency" required><option value="">Select currency</option><option value="USD">USD</option><option value="NGN">NGN</option><option value="GBP">GBP</option><option value="EUR">EUR</option><option value="CAD">CAD</option></select></label>
+    <label>Country<input name="recipientCountry" id="demoRecipientCountry" required placeholder="Country"></label>
+    <label class="recipient-detail-wide">US routing number<input name="recipientRouting" id="demoRecipientRouting" inputmode="numeric" maxlength="9" pattern="[0-9]{9}" required placeholder="Enter 9-digit routing number"></label>
    </div>
-   <div id="transferActivityPane" hidden><div class="transfer-empty">Your transfer activity is listed below.</div></div>
-  </section>
-  <aside class="transfer-aside">
-   <h3>Transfer overview</h3>
-   <div class="transfer-summary-card"><small>Total available across your accounts</small><strong>${money(total)}</strong><span>${customerAccounts.length} account${customerAccounts.length===1?"":"s"} · USD</span></div>
-   <div>
-    ${customerAccounts.map(a=>'<div class="transfer-account-mini"><span>'+(a.account_type==="checking"?"Checking":"Savings")+' · •••• '+a.account_number.slice(-4)+'</span><b>'+money(a.available_balance)+'</b></div>').join("")}
+   <div class="form-two">
+    <label>Amount to send<div class="amount-wrap"><span class="amount-prefix">$</span><input name="amount" type="number" min="0.01" max="1000000" step="0.01" inputmode="decimal" placeholder="0.00" required></div><span class="transfer-field-hint">Available currency: USD</span></label>
+    <label>Transfer method<select name="transferType" required><option value="Domestic wire">Domestic wire transfer</option><option value="ACH">ACH transfer</option></select><span class="transfer-field-hint">Choose the transfer method for this demo.</span></label>
    </div>
-   <p class="transfer-aside-note">Transfers are currently limited to accounts held within this Bank platform. No external bank routing or real-world payment network is connected.</p>
-  </aside>
- </div>
- <section class="transfer-activity"><div class="transfer-activity-head"><h3>Recent transfers</h3><input class="transfer-search" id="transferSearch" type="search" placeholder="Search reference or note…" aria-label="Search transfers"></div><div class="transfer-list" id="transferHistory"><div class="transfer-empty">Loading your recent transfers…</div></div></section>`;
- const tabs=panel.querySelectorAll("[data-transfer-tab]");
- tabs.forEach(tab=>tab.addEventListener("click",()=>{tabs.forEach(x=>x.classList.toggle("active",x===tab));document.getElementById("transferSendPane").hidden=tab.dataset.transferTab!=="send";document.getElementById("transferActivityPane").hidden=tab.dataset.transferTab!=="activity";if(tab.dataset.transferTab==="activity")document.getElementById("transferActivityPane").innerHTML='<p class="transfer-hint">Your latest transfer records are listed below.</p>'; }));
- const {data:rows,error}=await sb.from("bank_transactions").select("reference,sender_user_id,recipient_user_id,amount,currency_code,description,status,created_at,transaction_type,is_synthetic").or("sender_user_id.eq."+currentUserId+",recipient_user_id.eq."+currentUserId).order("created_at",{ascending:false}).limit(30);
- const history=document.getElementById("transferHistory");
- if(error){history.innerHTML='<div class="transfer-empty">Transfer activity is temporarily unavailable. Please refresh to try again.</div>';return;}
- const renderRows=(filter="")=>{
-  const filtered=(rows||[]).filter(row=>(String(row.reference||"")+" "+String(row.description||"")).toLowerCase().includes(filter.toLowerCase()));
-  if(!filtered.length){history.innerHTML='<div class="transfer-empty">'+(filter?"No transfers match your search.":"No transfers yet. Your completed transfers will appear here.")+'</div>';return;}
-  history.innerHTML=filtered.map(row=>{
-   const outgoing=row.transaction_type==="debit"||(row.transaction_type!=="credit"&&row.sender_user_id===currentUserId);
-   const title=row.transaction_type==="debit"?"Debit":row.transaction_type==="credit"?"Credit":(outgoing?"Transfer sent":"Transfer received");
-   const date=new Intl.DateTimeFormat("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"}).format(new Date(row.created_at));
-   const amount=money(row.amount);
-   const status=String(row.status||"completed").toUpperCase();
-   return '<article class="transfer-item"><span class="transfer-item-icon '+(outgoing?"":"in")+'">'+(outgoing?"↗":"↙")+'</span><div class="transfer-item-copy"><strong>'+title+'</strong><small>'+date+' · Ref '+row.reference+(row.description?" · "+row.description:"")+'</small></div><div class="transfer-item-amount '+(outgoing?"out":"in")+'">'+(outgoing?"−":"+")+amount+'<small>'+status+'</small></div></article>';
-  }).join("");
- };
- renderRows();
- document.getElementById("transferSearch").addEventListener("input",e=>renderRows(e.target.value));
+   <label>Payment note <span class="transfer-field-hint">Optional · up to 120 characters</span><input name="description" maxlength="120" placeholder="e.g. Rent or personal payment"></label>
+   <div class="transfer-note"><span>ⓘ</span><div>This is a simulated transfer. Only your selected account balance changes; no recipient account is credited and no real payment network is contacted.</div></div>
+   <button class="transfer-submit" type="submit" ${activeAccounts.length?"":"disabled"}>Review transfer details&nbsp; →</button>
+  </form>
+ </section>`;
 }
 async function renderMyTransactions(){
  const panel=document.getElementById("subPanel");
@@ -593,7 +573,7 @@ function renderDedicatedPage(key){
  panel.innerHTML='<section class="dedicated-page" data-page="'+key+'"><div class="empty-icon">'+page.icon+'</div><span class="eyebrow">'+page.lead.toUpperCase()+'</span><h3>'+page.title+'</h3><p class="dedicated-lead">'+page.body+'</p><div class="dedicated-options">'+page.items.map((item,i)=>'<div class="dedicated-option"><span>'+(i+1).toString().padStart(2,"0")+'</span><b>'+item+'</b></div>').join("")+'</div>'+(key==="support"?'<a class="profile-link" href="support.html">Open customer support →</a>':'')+'</section>';
 }
 
-function showSection(key){if(!Object.prototype.hasOwnProperty.call(sections,key))key="overview";const s=sections[key];try{if(key==="overview")localStorage.removeItem("bankDashboardSection");else localStorage.setItem("bankDashboardSection",key);}catch(storageError){}const nextUrl=key==="overview"?(location.pathname+location.search):(location.pathname+location.search+"#"+key);if(location.pathname+location.search+location.hash!==nextUrl)history.replaceState(null,"",nextUrl);document.querySelectorAll(".side-link").forEach(b=>b.classList.toggle("active",b.dataset.section===key));document.getElementById("overviewView").hidden=key!=="overview";document.getElementById("subView").hidden=key==="overview";document.getElementById("subTitle").textContent=s[0];document.getElementById("sidebar").classList.remove("open");if(key==="accounts")renderMyAccounts();else if(key==="transfers")renderMyTransfers();else if(key==="transactions")renderMyTransactions();else if(key==="profile")renderMyProfile();else if(["payments","cards","statements","support"].includes(key))renderDedicatedPage(key);window.scrollTo({top:0,behavior:"instant"});}
+function showSection(key){if(!Object.prototype.hasOwnProperty.call(sections,key))key="overview";const s=sections[key];try{if(key==="overview")localStorage.removeItem("bankDashboardSection");else localStorage.setItem("bankDashboardSection",key);}catch(storageError){}const nextUrl=key==="overview"?(location.pathname+location.search):(location.pathname+location.search+"#"+key);if(location.pathname+location.search+location.hash!==nextUrl)history.replaceState(null,"",nextUrl);document.querySelectorAll(".side-link").forEach(b=>b.classList.toggle("active",b.dataset.section===key));document.getElementById("overviewView").hidden=key!=="overview";document.getElementById("subView").hidden=key==="overview";document.getElementById("subTitle").textContent=s[0];document.getElementById("subView").dataset.section=key;document.getElementById("sidebar").classList.remove("open");document.querySelectorAll(".mobile-nav-item").forEach(item=>item.classList.toggle("active",({overview:"overview",transactions:"transactions",cards:"cards",support:"support",profile:"profile"})[key]===item.dataset.goto));if(key==="accounts")renderMyAccounts();else if(key==="transfers")renderMyTransfers();else if(key==="transactions")renderMyTransactions();else if(key==="profile")renderMyProfile();else if(["payments","cards","statements","support"].includes(key))renderDedicatedPage(key);window.scrollTo({top:0,behavior:"instant"});}
 document.querySelectorAll(".side-link").forEach(b=>b.addEventListener("click",()=>showSection(b.dataset.section)));
 window.addEventListener("hashchange",()=>{const key=location.hash.slice(1);if(Object.prototype.hasOwnProperty.call(sections,key))showSection(key);else if(!key)showSection("overview");});
  document.querySelectorAll("[data-account-card]").forEach(card=>{
@@ -650,11 +630,11 @@ document.getElementById("subPanel").addEventListener("submit",async e=>{
   const fullName=[data.first_name,data.middle_name,data.last_name].filter(Boolean).join(" ");
   const initials=fullName.split(" ").filter(Boolean).map(x=>x[0]).join("").slice(0,2).toUpperCase()||"U";
   document.getElementById("welcomeName").textContent=fullName+".";
-  document.getElementById("topName").textContent=fullName;
-  document.getElementById("profileName").textContent=fullName;
-  document.getElementById("profileCardName").textContent=fullName;
+  document.getElementById("topName")?.textContent=fullName;
+  document.getElementById("profileName")?.textContent=fullName;
+  document.getElementById("profileCardName")?.textContent=fullName;
   document.getElementById("topInitial").textContent=initials;
-  document.getElementById("profileInitial").textContent=initials;
+  document.getElementById("profileInitial")?.textContent=initials;
   status.textContent="Your profile has been updated successfully.";
   button.disabled=false;button.textContent="Saved ✓";
   return;
