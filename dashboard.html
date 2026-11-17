@@ -344,18 +344,18 @@ async function renderMyTransfers(){
  panel.innerHTML=`
  <div class="transfer-shell">
   <section class="transfer-main">
-   <div class="transfer-intro"><div><h3>Send a transfer</h3><p>Move funds securely to another Bank account. Review every detail before confirming.</p></div><span class="transfer-secure">◆ Secure transfer</span></div>
+   <div class="transfer-intro"><div><h3>Send a transfer</h3><p>Create a simulated transfer to a manager-created demo recipient. Only your account balance is debited.</p></div><span class="transfer-secure">◆ Secure transfer</span></div>
    <div class="transfer-tabs"><button type="button" class="transfer-tab active" data-transfer-tab="send">Send money</button><button type="button" class="transfer-tab" data-transfer-tab="withdraw">Withdraw funds</button><button type="button" class="transfer-tab" data-transfer-tab="activity">Transfer activity</button></div>
    <div id="transferSendPane">
     <form class="transfer-form" id="transferForm">
      <label>From account<select name="fromAccount" required ${activeAccounts.length?"":"disabled"}>${options}</select><span class="transfer-field-hint">Choose one of your active Bank accounts.</span></label>
-     <label>Recipient account number<input name="toAccount" inputmode="numeric" autocomplete="off" maxlength="12" pattern="[0-9]{12}" placeholder="Enter 12-digit account number" required><span class="transfer-field-hint">Enter the recipient’s 12-digit Bank account number.</span></label>
+     <label>Recipient account number<input name="toAccount" id="demoRecipientAccount" inputmode="numeric" autocomplete="off" maxlength="12" pattern="[0-9]{12}" placeholder="Enter 12-digit demo account number" required><span class="transfer-field-hint">Enter an account number created by the manager.</span><span id="demoRecipientLookup" class="transfer-field-hint" aria-live="polite">Recipient name will appear here after lookup.</span></label>
      <div class="form-two">
       <label>Amount to send<div class="amount-wrap"><span class="amount-prefix">$</span><input name="amount" type="number" min="0.01" max="1000000" step="0.01" inputmode="decimal" placeholder="0.00" required></div><span class="transfer-field-hint">Available currency: USD</span></label>
-      <label>Transfer type<select name="transferType" disabled><option>Bank account transfer</option></select><span class="transfer-field-hint">Internal transfers only at this time.</span></label>
+      <label>Transfer type<select name="transferType" disabled><option>Bank account transfer</option></select><span class="transfer-field-hint">Manager-created demo recipients only.</span></label>
      </div>
      <label>Payment note <span class="transfer-field-hint">Optional · up to 120 characters</span><input name="description" maxlength="120" placeholder="e.g. Rent, personal payment, savings"></label>
-     <div class="transfer-note"><span>ⓘ</span><div>Make sure the account number is correct. Transfers are processed immediately after your final confirmation and may not be reversible.</div></div>
+     <div class="transfer-note"><span>ⓘ</span><div>This is a simulated transfer. Only your selected account balance changes; the recipient directory entry and any other account balance remain unchanged.</div></div>
      <button class="transfer-submit" type="submit" ${activeAccounts.length?"":"disabled"}>Review transfer details&nbsp; →</button>
     </form>
    </div>
@@ -470,13 +470,14 @@ async function renderMyTransactions(){
    ["Amount",amount],
    ["Currency",row.currency_code||"USD"],
    ["Description",cleanDescription(row.description)],
+   ...(outgoing&&String(row.description||"").startsWith("Demo transfer to ")?[["Recipient",String(row.description).slice(17).split(" · ")[0]],["Recipient account",String(row.description).slice(17).split(" · ")[1]||"—"]]:[]),
    ["Direction",outgoing?"Money out":"Money in"],
    ["From",randomFrom(row)],
 
   ];
   const overlay=document.createElement("div");overlay.id="transactionDetailsOverlay";overlay.style.cssText="position:fixed;inset:0;z-index:120;background:rgba(20,18,19,.62);display:grid;place-items:center;padding:16px;overflow:auto";
   const card=document.createElement("section");card.className="transfer-review-card";card.setAttribute("role","dialog");card.setAttribute("aria-modal","true");card.setAttribute("aria-labelledby","transactionDetailsTitle");
-  card.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px"><div><span class="profile-kicker">TRANSACTION DETAILS</span><h2 id="transactionDetailsTitle" style="margin:5px 0 0">Transaction receipt</h2></div><button type="button" id="closeTransactionDetails" aria-label="Close details" style="border:0;background:#f2f2f2;border-radius:50%;width:36px;height:36px;font-size:20px;cursor:pointer">×</button></div><div class="transfer-review-total"><small>'+(outgoing?"Amount debited":"Amount credited")+'</small><strong>'+amount+'</strong></div><div class="transfer-review-rows">'+fields.map(([label,value])=>'<div class="transfer-review-row"><span>'+escapeHtml(label)+'</span><b>'+escapeHtml(value)+'</b></div>').join("")+'</div>'+(row.is_synthetic?'<p style="margin:14px 0 0;color:#8a8178;font-size:10px;text-align:right">Simulated transaction</p>':"")+'<div class="transfer-review-actions" style="grid-template-columns:1fr"><button class="transfer-confirm" type="button" id="transactionDetailsDone">Close</button></div>';
+  card.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px"><div><span class="profile-kicker">TRANSACTION DETAILS</span><h2 id="transactionDetailsTitle" style="margin:5px 0 0">Transaction receipt</h2></div><button type="button" id="closeTransactionDetails" aria-label="Close details" style="border:0;background:#f2f2f2;border-radius:50%;width:36px;height:36px;font-size:20px;cursor:pointer">×</button></div><div class="transfer-review-total"><small>'+(outgoing?"Amount debited":"Amount credited")+'</small><strong>'+amount+'</strong></div><div class="transfer-review-rows">'+fields.map(([label,value])=>'<div class="transfer-review-row"><span>'+escapeHtml(label)+'</span><b>'+escapeHtml(value)+'</b></div>').join("")+'</div>'+(row.is_synthetic?'<p style="margin:14px 0 0;color:#68748f;font-size:10px;text-align:right">Simulated transaction · demo ledger only</p>':"")+'<div class="transfer-review-actions" style="grid-template-columns:1fr"><button class="transfer-confirm" type="button" id="transactionDetailsDone">Close</button></div>';
   overlay.appendChild(card);document.body.appendChild(overlay);
   const close=()=>overlay.remove();
   card.querySelector("#closeTransactionDetails").addEventListener("click",close);
@@ -599,17 +600,17 @@ function openTransferDialog(transfer,receipt){
  const money=new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(transfer.amount);
  const row=(label,value)=>'<div class="transfer-review-row"><span>'+label+'</span><b>'+value+'</b></div>';
  if(receipt){
-  card.innerHTML='<div class="transfer-receipt-mark">✓</div><h2 id="transferDialogTitle" style="text-align:center">Transfer successful</h2><p style="text-align:center">Your transfer has been submitted successfully.</p><div class="transfer-review-total"><small>Amount transferred</small><strong>'+money+'</strong></div><div class="transfer-review-rows">'+row("From account","•••• "+transfer.fromAccount.slice(-4))+row("Recipient account","•••• "+transfer.toAccount.slice(-4))+row("Reference",transfer.reference)+row("Date",new Date().toLocaleString())+'</div><div class="transfer-review-actions" style="grid-template-columns:1fr"><button class="transfer-confirm" type="button" id="receiptDone">Done</button></div>';
+  card.innerHTML='<div class="transfer-receipt-mark">✓</div><h2 id="transferDialogTitle" style="text-align:center">Transfer successful</h2><p style="text-align:center">Your simulated transfer has been recorded. Only your account balance was changed.</p><div class="transfer-review-total"><small>Amount transferred</small><strong>'+money+'</strong></div><div class="transfer-review-rows">'+row("From account","•••• "+transfer.fromAccount.slice(-4))+row("Recipient",transfer.recipientName||"Demo recipient")+row("Recipient account",transfer.toAccount)+row("Reference",transfer.reference)+row("Date",new Date().toLocaleString())+'</div><div class="transfer-review-actions" style="grid-template-columns:1fr"><button class="transfer-confirm" type="button" id="receiptDone">Done</button></div>';
   card.querySelector("#receiptDone").addEventListener("click",closeTransferReview);
  }else{
   const from=customerAccounts.find(a=>a.account_number===transfer.fromAccount);
-  card.innerHTML='<div class="transfer-review-mark">⇄</div><h2 id="transferDialogTitle">Review transfer</h2><p>Confirm the details below. Your balance will only change after you select Confirm transfer.</p><div class="transfer-review-total"><small>You are sending</small><strong>'+money+'</strong></div><div class="transfer-review-rows">'+row("From account",(from?.account_type==="checking"?"Checking":"Savings")+" · •••• "+transfer.fromAccount.slice(-4))+row("Recipient account","••••••••"+transfer.toAccount.slice(-4))+row("Payment note",transfer.description||"Not provided")+'</div><div class="transfer-review-actions"><button class="transfer-cancel" type="button" id="transferCancel">Go back</button><button class="transfer-confirm" type="button" id="transferConfirm">Confirm transfer</button></div>';
+  card.innerHTML='<div class="transfer-review-mark">⇄</div><h2 id="transferDialogTitle">Review transfer</h2><p>Confirm the details below. This simulated transfer debits only your account. The recipient directory entry and any other account balance remain unchanged.</p><div class="transfer-review-total"><small>You are sending</small><strong>'+money+'</strong></div><div class="transfer-review-rows">'+row("From account",(from?.account_type==="checking"?"Checking":"Savings")+" · •••• "+transfer.fromAccount.slice(-4))+row("Recipient",transfer.recipientName||"Demo recipient")+row("Recipient account",transfer.toAccount)+row("Payment note",transfer.description||"Not provided")+'</div><div class="transfer-review-actions"><button class="transfer-cancel" type="button" id="transferCancel">Go back</button><button class="transfer-confirm" type="button" id="transferConfirm">Confirm transfer</button></div>';
   card.querySelector("#transferCancel").addEventListener("click",closeTransferReview);
   card.querySelector("#transferConfirm").addEventListener("click",async()=>{
    const confirm=card.querySelector("#transferConfirm"),cancel=card.querySelector("#transferCancel");confirm.disabled=true;cancel.disabled=true;confirm.textContent="Processing…";
-   const {data:result,error}=await sb.rpc("make_internal_transfer",{p_from_account_number:transfer.fromAccount,p_to_account_number:transfer.toAccount,p_amount:transfer.amount,p_description:transfer.description});
+   const {data:result,error}=await sb.rpc("make_demo_recipient_transfer",{p_from_account_number:transfer.fromAccount,p_recipient_account_number:transfer.toAccount,p_amount:transfer.amount,p_description:transfer.description});
    if(error){toast(error.message||"Transfer could not be completed.");confirm.disabled=false;cancel.disabled=false;confirm.textContent="Confirm transfer";return;}
-   const receiptData={...transfer,reference:result.reference};
+   const receiptData={...transfer,recipientName:result.recipient_name,reference:result.reference};
    closeTransferReview();
    const {data:updated,error:refreshError}=await sb.from("bank_accounts").select("account_number,account_type,currency_code,available_balance,account_status,created_at").eq("user_id",currentUserId).order("created_at");
    if(!refreshError&&updated){customerAccounts=updated;document.querySelectorAll("[data-account-card]").forEach(el=>{const account=customerAccounts.find(a=>a.account_type===el.dataset.accountCard);const balance=el.querySelector(".balance[data-amount]");if(account&&balance){balance.dataset.amount=new Intl.NumberFormat("en-US",{style:"currency",currency:account.currency_code||"USD"}).format(Number(account.available_balance));balance.textContent=balancesHidden?"••••••":balance.dataset.amount;}});}
@@ -670,6 +671,19 @@ document.getElementById("subPanel").addEventListener("submit",e=>{
  openWithdrawalDialog({accountNumber,amount,description});
 });
 
+let resolvedDemoRecipient=null;
+async function lookupDemoRecipient(){
+ const input=document.getElementById("demoRecipientAccount"),label=document.getElementById("demoRecipientLookup");
+ if(!input||!label)return null;
+ const number=input.value.trim();resolvedDemoRecipient=null;
+ if(!/^\\d{12}$/.test(number)){label.textContent=number?"Enter a valid 12-digit account number.":"Recipient name will appear here after lookup.";label.style.color="";return null;}
+ label.textContent="Looking up recipient…";label.style.color="";
+ const {data,error}=await sb.from("demo_recipients").select("recipient_name,account_number,status").eq("account_number",number).eq("status","active").maybeSingle();
+ if(error){label.textContent="Recipient lookup is temporarily unavailable.";label.style.color="#b42318";return null;}
+ if(!data){label.textContent="No active demo recipient found for this account number.";label.style.color="#b42318";return null;}
+ resolvedDemoRecipient=data;label.textContent="Recipient: "+data.recipient_name;label.style.color="#0b9d68";return data;
+}
+document.getElementById("subPanel").addEventListener("blur",e=>{if(e.target.id==="demoRecipientAccount")lookupDemoRecipient();},true);
 document.getElementById("subPanel").addEventListener("submit",e=>{
  if(e.target.id!=="transferForm")return;
  e.preventDefault();
@@ -678,13 +692,13 @@ document.getElementById("subPanel").addEventListener("submit",e=>{
  const toAccount=String(data.get("toAccount")||"").trim();
  const amount=Number(data.get("amount"));
  const description=String(data.get("description")||"").trim();
- if(!/^\d{12}$/.test(toAccount)){toast("Enter a valid 12-digit Bank account number.");return;}
+ if(!/^\d{12}$/.test(toAccount)){toast("Enter a valid 12-digit account number.");return;} if(!resolvedDemoRecipient||resolvedDemoRecipient.account_number!==toAccount){toast("Look up an active demo recipient before continuing.");lookupDemoRecipient();return;}
  if(!Number.isFinite(amount)||amount<=0||Math.round(amount*100)!==amount*100){toast("Enter a valid amount with up to two decimal places.");return;}
  if(fromAccount===toAccount){toast("Choose a different recipient account.");return;}
  const source=customerAccounts.find(a=>a.account_number===fromAccount);
  if(!source||source.account_status!=="active"){toast("Choose an active account to transfer from.");return;}
  if(amount>Number(source.available_balance||0)){toast("Your available balance is not sufficient.");return;}
- pendingTransfer={fromAccount,toAccount,amount,description};
+ pendingTransfer={fromAccount,toAccount,amount,description,recipientName:resolvedDemoRecipient.recipient_name};
  openTransferDialog(pendingTransfer,false);
 });
 document.getElementById("subPanel").addEventListener("click",async e=>{const button=e.target.closest("[data-copy-account]");if(!button)return;try{await navigator.clipboard.writeText(button.dataset.copyAccount);toast("Account number copied.");}catch(err){toast("Copy is unavailable on this browser.");}});
