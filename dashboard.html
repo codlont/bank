@@ -249,7 +249,7 @@ async function renderMyTransfers(){
  <div class="transfer-shell">
   <section class="transfer-main">
    <div class="transfer-intro"><div><h3>Send a transfer</h3><p>Move funds securely to another Bank account. Review every detail before confirming.</p></div><span class="transfer-secure">◆ Secure transfer</span></div>
-   <div class="transfer-tabs"><button type="button" class="transfer-tab active" data-transfer-tab="send">Send money</button><button type="button" class="transfer-tab" data-transfer-tab="activity">Transfer activity</button></div>
+   <div class="transfer-tabs"><button type="button" class="transfer-tab active" data-transfer-tab="send">Send money</button><button type="button" class="transfer-tab" data-transfer-tab="withdraw">Withdraw funds</button><button type="button" class="transfer-tab" data-transfer-tab="activity">Transfer activity</button></div>
    <div id="transferSendPane">
     <form class="transfer-form" id="transferForm">
      <label>From account<select name="fromAccount" required ${activeAccounts.length?"":"disabled"}>${options}</select><span class="transfer-field-hint">Choose one of your active Bank accounts.</span></label>
@@ -263,7 +263,16 @@ async function renderMyTransfers(){
      <button class="transfer-submit" type="submit" ${activeAccounts.length?"":"disabled"}>Review transfer details&nbsp; →</button>
     </form>
    </div>
-   <div id="transferActivityPane" hidden><div class="transfer-empty">Loading your transfer activity…</div></div>
+   <div id="withdrawPane" hidden>
+    <form class="transfer-form" id="withdrawalForm">
+     <label>Withdraw from<select name="accountNumber" required ${activeAccounts.length?"":"disabled"}>${options}</select><span class="transfer-field-hint">Choose the account to debit.</span></label>
+     <label>Withdrawal amount<div class="amount-wrap"><span class="amount-prefix">$</span><input name="amount" type="number" min="0.01" max="1000000" step="0.01" inputmode="decimal" placeholder="0.00" required></div><span class="transfer-field-hint">Available currency: USD</span></label>
+     <label>Withdrawal note <span class="transfer-field-hint">Optional · up to 120 characters</span><input name="description" maxlength="120" placeholder="e.g. Cash withdrawal"></label>
+     <div class="transfer-note"><span>ⓘ</span><div>This is a simulated withdrawal in the Bank demo environment. It will debit the selected demo account and add a clearly identified test entry to transaction history. No real funds or payment network are involved.</div></div>
+     <button class="transfer-submit" type="submit" ${activeAccounts.length?"":"disabled"}>Review withdrawal&nbsp; →</button>
+    </form>
+   </div>
+   <div id="transferActivityPane" hidden><div class="transfer-empty">Your transfer activity is listed below.</div></div>
   </section>
   <aside class="transfer-aside">
    <h3>Transfer overview</h3>
@@ -276,7 +285,7 @@ async function renderMyTransfers(){
  </div>
  <section class="transfer-activity"><div class="transfer-activity-head"><h3>Recent transfers</h3><input class="transfer-search" id="transferSearch" type="search" placeholder="Search reference or note…" aria-label="Search transfers"></div><div class="transfer-list" id="transferHistory"><div class="transfer-empty">Loading your recent transfers…</div></div></section>`;
  const tabs=panel.querySelectorAll("[data-transfer-tab]");
- tabs.forEach(tab=>tab.addEventListener("click",()=>{tabs.forEach(x=>x.classList.toggle("active",x===tab));document.getElementById("transferSendPane").hidden=tab.dataset.transferTab!=="send";document.getElementById("transferActivityPane").hidden=tab.dataset.transferTab!=="activity";if(tab.dataset.transferTab==="activity")document.getElementById("transferActivityPane").innerHTML='<p class="transfer-hint">Your latest transfer records are listed below.</p>'; }));
+ tabs.forEach(tab=>tab.addEventListener("click",()=>{tabs.forEach(x=>x.classList.toggle("active",x===tab));document.getElementById("transferSendPane").hidden=tab.dataset.transferTab!=="send";document.getElementById("withdrawPane").hidden=tab.dataset.transferTab!=="withdraw";document.getElementById("transferActivityPane").hidden=tab.dataset.transferTab!=="activity";if(tab.dataset.transferTab==="activity")document.getElementById("transferActivityPane").innerHTML='<p class="transfer-hint">Your latest transfer records are listed below.</p>'; }));
  const {data:rows,error}=await sb.from("bank_transactions").select("reference,sender_user_id,recipient_user_id,amount,currency_code,description,status,created_at,transaction_type,is_synthetic").or("sender_user_id.eq."+currentUserId+",recipient_user_id.eq."+currentUserId).order("created_at",{ascending:false}).limit(30);
  const history=document.getElementById("transferHistory");
  if(error){history.innerHTML='<div class="transfer-empty">Transfer activity is temporarily unavailable. Please refresh to try again.</div>';return;}
@@ -365,6 +374,7 @@ function renderMyProfile(){
 }
 function renderMyAccounts(){const panel=document.getElementById("subPanel");if(!customerAccounts.length){panel.innerHTML='<div class="empty"><div class="empty-icon">▣</div><strong>No accounts found</strong><p>Your deposit accounts will appear here once they are available.</p></div>';return;}const money=(amount,currency)=>new Intl.NumberFormat("en-US",{style:"currency",currency:currency||"USD"}).format(Number(amount||0));panel.innerHTML='<div class="account-detail-list">'+customerAccounts.map(account=>{const type=account.account_type==="checking"?"Checking account":"Savings account";const status=String(account.account_status||"active");const opened=account.created_at?new Intl.DateTimeFormat("en-US",{month:"long",day:"numeric",year:"numeric"}).format(new Date(account.created_at)):"—";return '<article class="account-detail-card"><div class="account-detail-head"><strong>'+type+'</strong><span class="status-pill">'+status.toUpperCase()+'</span></div><div class="account-detail-number"><span>'+account.account_number+'</span><button class="copy-account" type="button" data-copy-account="'+account.account_number+'">Copy number</button></div><div class="account-detail-meta"><div><small>Available balance</small><b>'+money(account.available_balance,account.currency_code)+'</b></div><div><small>Currency</small><b>'+(account.currency_code||"USD")+'</b></div><div><small>Account opened</small><b>'+opened+'</b></div><div><small>Account status</small><b>'+status.charAt(0).toUpperCase()+status.slice(1)+'</b></div></div></article>';}).join("")+'</div>';}function showSection(key){if(!Object.prototype.hasOwnProperty.call(sections,key))key="overview";const s=sections[key];try{if(key==="overview")localStorage.removeItem("bankDashboardSection");else localStorage.setItem("bankDashboardSection",key);}catch(storageError){}const nextUrl=key==="overview"?(location.pathname+location.search):(location.pathname+location.search+"#"+key);if(location.pathname+location.search+location.hash!==nextUrl)history.replaceState(null,"",nextUrl);document.querySelectorAll(".side-link").forEach(b=>b.classList.toggle("active",b.dataset.section===key));document.getElementById("overviewView").hidden=key!=="overview";document.getElementById("subView").hidden=key==="overview";document.getElementById("subTitle").textContent=s[0];document.getElementById("subHeading").textContent=s[1];document.getElementById("subText").textContent=s[2];document.getElementById("subIcon").textContent=s[3];document.getElementById("sidebar").classList.remove("open");if(key==="accounts")renderMyAccounts();else if(key==="transfers")renderMyTransfers();else if(key==="transactions")renderMyTransactions();else if(key==="profile")renderMyProfile();else if(key!=="support"){document.getElementById("subPanel").innerHTML='<div class="empty"><div class="empty-icon">'+s[3]+'</div><strong>'+s[1]+'</strong><p>'+s[2]+'</p></div>';}window.scrollTo({top:0,behavior:"instant"});if(key==="support"){setTimeout(()=>{document.getElementById("subText").innerHTML='Visit <a href="support.html" style="color:#791c2b;font-weight:700">Customer Support</a> for assistance and guidance.'},0)}}
 document.querySelectorAll(".side-link").forEach(b=>b.addEventListener("click",()=>showSection(b.dataset.section)));
+window.addEventListener("hashchange",()=>{const key=location.hash.slice(1);if(Object.prototype.hasOwnProperty.call(sections,key))showSection(key);else if(!key)showSection("overview");});
  document.querySelectorAll("[data-account-card]").forEach(card=>{
   const open=()=>showSection("accounts");
   card.addEventListener("click",open);
@@ -373,6 +383,36 @@ document.querySelectorAll(".side-link").forEach(b=>b.addEventListener("click",()
 document.querySelectorAll("[data-goto]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();showSection(a.dataset.goto)}));
 let pendingTransfer=null;
 function closeTransferReview(){const existing=document.getElementById("transferReview");if(existing)existing.remove();pendingTransfer=null;}
+
+function openWithdrawalDialog(withdrawal){
+ closeTransferReview();
+ const overlay=document.createElement("div");overlay.id="transferReview";overlay.style.cssText="position:fixed;inset:0;z-index:100;background:rgba(24,18,20,.62);display:grid;place-items:center;padding:16px;overflow:auto";
+ const card=document.createElement("section");card.className="transfer-review-card";card.setAttribute("role","dialog");card.setAttribute("aria-modal","true");card.setAttribute("aria-labelledby","withdrawDialogTitle");
+ const money=new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(withdrawal.amount);
+ const account=customerAccounts.find(a=>a.account_number===withdrawal.accountNumber);
+ const row=(label,value)=>'<div class="transfer-review-row"><span>'+label+'</span><b>'+value+'</b></div>';
+ card.innerHTML='<div class="transfer-review-mark">↓</div><h2 id="withdrawDialogTitle">Review withdrawal</h2><p>This simulated withdrawal will debit your demo account balance and appear in transaction history as a test record.</p><div class="transfer-review-total"><small>Withdrawal amount</small><strong>'+money+'</strong></div><div class="transfer-review-rows">'+row("From account",(account?.account_type==="checking"?"Checking":"Savings")+" · •••• "+withdrawal.accountNumber.slice(-4))+row("Note",withdrawal.description||"Cash withdrawal")+'</div><div class="transfer-review-actions"><button class="transfer-cancel" type="button" id="withdrawCancel">Go back</button><button class="transfer-confirm" type="button" id="withdrawConfirm">Confirm withdrawal</button></div>';
+ card.querySelector("#withdrawCancel").addEventListener("click",closeTransferReview);
+ card.querySelector("#withdrawConfirm").addEventListener("click",async()=>{
+  const confirm=card.querySelector("#withdrawConfirm"),cancel=card.querySelector("#withdrawCancel");confirm.disabled=true;cancel.disabled=true;confirm.textContent="Processing…";
+  const {data:result,error}=await sb.rpc("make_account_withdrawal",{p_account_number:withdrawal.accountNumber,p_amount:withdrawal.amount,p_description:withdrawal.description||"Cash withdrawal"});
+  if(error||!result||result.error){toast(error?.message||result?.error||"Withdrawal could not be completed.");confirm.disabled=false;cancel.disabled=false;confirm.textContent="Confirm withdrawal";return;}
+  closeTransferReview();
+  const {data:updated,error:refreshError}=await sb.from("bank_accounts").select("account_number,account_type,currency_code,available_balance,account_status,created_at").eq("user_id",currentUserId).order("created_at");
+  if(!refreshError&&updated){
+   customerAccounts=updated;
+   document.querySelectorAll("[data-account-card]").forEach(el=>{const a=customerAccounts.find(x=>x.account_type===el.dataset.accountCard);const b=el.querySelector(".balance[data-amount]");if(a&&b){b.dataset.amount=new Intl.NumberFormat("en-US",{style:"currency",currency:a.currency_code||"USD"}).format(Number(a.available_balance||0));b.textContent=balancesHidden?"••••••":b.dataset.amount;}});
+  }
+  await renderMyTransfers();await renderOverviewActivity();
+  const ref=result.reference||result?.[0]?.reference||"Recorded";
+  openTransferDialog({fromAccount:withdrawal.accountNumber,toAccount:withdrawal.accountNumber,amount:withdrawal.amount,reference:ref},true);
+  const title=document.querySelector("#transferReview h2");if(title)title.textContent="Withdrawal successful";
+  const paragraph=document.querySelector("#transferReview p");if(paragraph)paragraph.textContent="Your simulated withdrawal has been recorded in this demo account.";
+ });
+ overlay.append(card);overlay.addEventListener("click",e=>{if(e.target===overlay)closeTransferReview();});document.body.append(overlay);
+ card.querySelector("#withdrawCancel").focus();
+}
+
 function openTransferDialog(transfer,receipt){
  closeTransferReview();
  const overlay=document.createElement("div");overlay.id="transferReview";overlay.style.cssText="position:fixed;inset:0;z-index:100;background:rgba(24,18,20,.62);display:grid;place-items:center;padding:16px;overflow:auto";
@@ -436,6 +476,21 @@ document.getElementById("subPanel").addEventListener("submit",async e=>{
   return;
  }
 });
+
+document.getElementById("subPanel").addEventListener("submit",e=>{
+ if(e.target.id!=="withdrawalForm")return;
+ e.preventDefault();
+ const data=new FormData(e.target);
+ const accountNumber=String(data.get("accountNumber")||"");
+ const amount=Number(data.get("amount"));
+ const description=String(data.get("description")||"").trim();
+ const account=customerAccounts.find(a=>a.account_number===accountNumber);
+ if(!account||account.account_status!=="active"){toast("Choose an active account.");return;}
+ if(!Number.isFinite(amount)||amount<=0||Math.round(amount*100)!==amount*100){toast("Enter a valid amount with up to two decimal places.");return;}
+ if(amount>Number(account.available_balance||0)){toast("Your available balance is not sufficient.");return;}
+ openWithdrawalDialog({accountNumber,amount,description});
+});
+
 document.getElementById("subPanel").addEventListener("submit",e=>{
  if(e.target.id!=="transferForm")return;
  e.preventDefault();
