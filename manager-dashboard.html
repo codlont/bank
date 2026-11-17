@@ -233,38 +233,76 @@ html{width:100%;max-width:100%;overflow-x:hidden;-webkit-text-size-adjust:100%;}
 <div class="bank-search-modal" id="usBankSearchModal" aria-hidden="true"><section class="bank-search-panel" role="dialog" aria-modal="true" aria-label="Search US banks"><header class="bank-search-head"><strong>Choose a US bank</strong><button type="button" class="bank-search-close" id="usBankSearchClose" aria-label="Close">×</button></header><input class="bank-search-input" id="usBankSearchInput" type="search" placeholder="Search bank name…" autocomplete="off"><div class="bank-search-status" id="usBankSearchStatus">Loading US banks…</div><div class="bank-search-results" id="usBankSearchResults"></div></section></div>
 <script id="us-bank-search-controller">
 (function(){
- if(window.__usBankPickerInstalled)return;window.__usBankPickerInstalled=true;
- const modal=document.getElementById('usBankSearchModal'),input=document.getElementById('usBankSearchInput'),results=document.getElementById('usBankSearchResults'),status=document.getElementById('usBankSearchStatus');
- if(!modal||!input||!results||!status)return;
+ if(window.__usBankPickerInstalled)return;
+ window.__usBankPickerInstalled=true;
+ const modal=document.getElementById('usBankSearchModal');
+ const input=document.getElementById('usBankSearchInput');
+ const results=document.getElementById('usBankSearchResults');
+ const status=document.getElementById('usBankSearchStatus');
+ const closeButton=document.getElementById('usBankSearchClose');
+ if(!modal||!input||!results||!status||!closeButton)return;
  let banks=[],loaded=false,loading=false,target=null;
- const close=()=>{modal.classList.remove('open');modal.setAttribute('aria-hidden','true');target=null;};
- document.getElementById('usBankSearchClose').addEventListener('click',close);
+ const selects=()=>Array.from(document.querySelectorAll('[data-bank-search]')).map(button=>document.getElementById(button.dataset.bankSearch)).filter(Boolean);
+ function populateSelects(){
+  selects().forEach(select=>{
+   const current=select.value||'Vercel Bank';
+   const names=['Vercel Bank',...banks.filter(name=>name.toLowerCase()!=='vercel bank')];
+   select.replaceChildren(...names.map(name=>new Option(name,name)));
+   select.value=names.includes(current)?current:'Vercel Bank';
+  });
+ }
+ function close(){modal.classList.remove('open');modal.setAttribute('aria-hidden','true');target=null;}
+ closeButton.addEventListener('click',close);
  modal.addEventListener('click',e=>{if(e.target===modal)close();});
  function render(){
-  const q=input.value.trim().toLowerCase(),found=banks.filter(name=>!q||name.toLowerCase().includes(q)).slice(0,100);
+  const q=input.value.trim().toLowerCase();
+  const found=banks.filter(name=>!q||name.toLowerCase().includes(q)).slice(0,150);
   results.innerHTML=found.map(name=>'<button type="button" class="bank-search-result" data-bank-name="'+name.replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'">'+name.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</button>').join('');
   results.querySelectorAll('[data-bank-name]').forEach(btn=>btn.addEventListener('click',()=>{
-   if(!target)return;const select=document.getElementById(target);if(!select)return;
-   let option=Array.from(select.options).find(o=>o.value===btn.dataset.bankName);
-   if(!option){option=new Option(btn.dataset.bankName,btn.dataset.bankName);select.add(option);}
-   select.value=btn.dataset.bankName;select.dispatchEvent(new Event('change',{bubbles:true}));close();
+   if(!target)return;
+   const select=document.getElementById(target);
+   if(!select)return;
+   if(!Array.from(select.options).some(option=>option.value===btn.dataset.bankName))select.add(new Option(btn.dataset.bankName,btn.dataset.bankName));
+   select.value=btn.dataset.bankName;
+   select.dispatchEvent(new Event('change',{bubbles:true}));
+   close();
   }));
-  status.textContent=found.length?(q?'Showing '+found.length+' matching banks':'Showing first '+found.length+' banks. Type to narrow the list.'):'No banks match that search.';
+  status.textContent=found.length?(q?'Showing '+found.length+' matching banks':'Showing first '+found.length+' banks. Scroll the bank list or type to search.'):'No banks match that search.';
  }
  async function load(){
-  if(loaded||loading)return;loading=true;status.textContent='Loading active US banks from the FDIC directory…';
+  if(loaded||loading)return;
+  loading=true;
+  status.textContent='Loading the current US bank directory…';
   try{
-   const url='https://api.fdic.gov/banks/institutions?filters=ACTIVE%3A1&fields=NAME%2CACTIVE&limit=10000&sort_by=NAME&sort_order=ASC&format=json';
-   const response=await fetch(url,{headers:{Accept:'application/json'}});if(!response.ok)throw new Error('The US bank directory is temporarily unavailable.');
-   const payload=await response.json();banks=[...new Set((payload.data||[]).map(row=>String(row.data?.NAME||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
-   loaded=true;status.textContent=banks.length+' active FDIC-insured US banks available. Search by name.';render();
-  }catch(err){status.textContent=err.message||'Could not load the US bank directory. Please try again.';}
-  finally{loading=false;}
+   const response=await fetch('https://api.fdic.gov/banks/institutions?filters=ACTIVE%3A1&fields=NAME&limit=10000&sort_by=NAME&sort_order=ASC&format=json',{headers:{Accept:'application/json'}});
+   if(!response.ok)throw new Error('The bank directory could not be reached. Tap to retry.');
+   const payload=await response.json();
+   banks=[...new Set((payload.data||[]).map(row=>String((row.data&&row.data.NAME)||row.NAME||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+   if(!banks.length)throw new Error('The bank directory returned no results. Tap to retry.');
+   loaded=true;
+   populateSelects();
+   render();
+  }catch(error){
+   status.innerHTML='';
+   const message=document.createElement('span');message.textContent=error.message||'Could not load US banks.';
+   const retry=document.createElement('button');retry.type='button';retry.textContent='Retry';retry.style.cssText='margin-left:10px;padding:7px 12px;border:0;border-radius:8px;background:#1455b8;color:white;font-weight:700';
+   retry.addEventListener('click',()=>load().then(render));
+   status.append(message,retry);
+  }finally{loading=false;}
  }
  document.querySelectorAll('[data-bank-search]').forEach(button=>button.addEventListener('click',async()=>{
-  target=button.dataset.bankSearch;modal.classList.add('open');modal.setAttribute('aria-hidden','false');input.value='';results.innerHTML='';status.textContent='Loading US banks…';input.focus();await load();render();
+  target=button.dataset.bankSearch;
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden','false');
+  input.value='';
+  results.innerHTML='';
+  status.textContent='Loading US banks…';
+  await load();
+  render();
+  input.focus();
  }));
  input.addEventListener('input',render);
+ load();
 })();
 </script></body></html>
 <!-- Trigger fresh Vercel deployment -->
