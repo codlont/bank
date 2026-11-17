@@ -371,6 +371,25 @@ body{background:linear-gradient(115deg,#f5f8ff,#edf3ff 60%,#e8f0ff)}
 
 
 </style>
+<style id="transaction-pin-modal-styles">
+#transactionPinModal{position:fixed;inset:0;z-index:100000;background:rgba(8,20,48,.62);backdrop-filter:blur(8px);display:grid;place-items:center;padding:24px}
+#transactionPinModal .pin-card{width:min(100%,410px);background:#fff;border:1px solid #dce7fa;border-radius:24px;padding:26px;box-shadow:0 25px 80px #071d4933;color:#14213d}
+#transactionPinModal .pin-icon{width:52px;height:52px;border-radius:16px;background:#edf4ff;color:#1455b8;display:grid;place-items:center;font-size:25px;margin-bottom:17px}
+#transactionPinModal h3{margin:0 0 8px;font-size:23px;color:#14213d}
+#transactionPinModal p{margin:0 0 19px;color:#687894;font-size:14px;line-height:1.55}
+#transactionPinModal label{display:block;font-size:13px;font-weight:700;margin-bottom:8px}
+#transactionPinModal input{width:100%;height:54px;border:1px solid #d8e2f2;border-radius:12px;padding:0 15px;font-size:20px;letter-spacing:.3em;color:#14213d;background:#f9fbff}
+#transactionPinModal input:focus{outline:0;border-color:#287cff;box-shadow:0 0 0 4px #287cff20}
+#transactionPinModal .pin-error{min-height:20px;margin:9px 0 0;color:#bd3348;font-size:12px}
+#transactionPinModal .pin-actions{display:flex;gap:10px;margin-top:18px}
+#transactionPinModal button{min-height:48px;border-radius:12px;padding:0 16px;font-weight:700;border:1px solid #dce7f7}
+#transactionPinModal .pin-cancel{background:#f5f8fd;color:#53698c}
+#transactionPinModal .pin-submit{flex:1;background:linear-gradient(105deg,#1455b8,#287cff);border-color:#1455b8;color:#fff}
+#transferReview .transfer-alert{display:flex;gap:13px;align-items:flex-start;margin:14px 0 0;padding:16px;border:1px solid #f4d7dc;border-radius:16px;background:#fff8f8;color:#26334e}
+#transferReview .transfer-alert .alert-icon{width:38px;height:38px;flex:0 0 38px;border-radius:12px;display:grid;place-items:center;background:#fff0f2;color:#b52d43;font-size:19px}
+#transferReview .transfer-alert strong{display:block;margin:1px 0 4px;font-size:14px;color:#92243a}
+#transferReview .transfer-alert p{margin:0;font-size:12px;line-height:1.5;color:#76515a}
+</style>
 </head>
 <body data-current-page="overview">
 <header class="topbar">
@@ -725,6 +744,17 @@ notificationButton?.addEventListener("click",e=>{e.stopPropagation();if(notifica
 document.getElementById("securityLearnMore")?.addEventListener("click",()=>showSection("support"));
 document.querySelectorAll(".mobile-nav-item[data-goto]").forEach(a=>a.addEventListener("click",()=>{document.querySelectorAll(".mobile-nav-item").forEach(x=>x.classList.remove("active"));a.classList.add("active");}));
 
+function requestTransactionPin(){
+ return new Promise(resolve=>{
+  const overlay=document.createElement("div");overlay.id="transactionPinModal";
+  overlay.innerHTML='<section class="pin-card" role="dialog" aria-modal="true" aria-labelledby="pinModalTitle"><div class="pin-icon">♙</div><h3 id="pinModalTitle">Confirm your transfer</h3><p>For your account security, enter the 4–6 digit transaction PIN assigned to this account.</p><form id="pinModalForm"><label for="pinModalInput">Transaction PIN</label><input id="pinModalInput" type="password" inputmode="numeric" autocomplete="one-time-code" maxlength="6" minlength="4" pattern="[0-9]{4,6}" placeholder="••••" required><div class="pin-error" id="pinModalError" role="alert"></div><div class="pin-actions"><button class="pin-cancel" type="button" id="pinModalCancel">Cancel</button><button class="pin-submit" type="submit">Verify PIN</button></div></form></section>';
+  document.body.append(overlay);const input=overlay.querySelector("#pinModalInput");input.focus();
+  const finish=value=>{overlay.remove();resolve(value);};
+  overlay.querySelector("#pinModalCancel").addEventListener("click",()=>finish(null));
+  overlay.addEventListener("click",e=>{if(e.target===overlay)finish(null);});
+  overlay.querySelector("#pinModalForm").addEventListener("submit",e=>{e.preventDefault();const pin=input.value.trim();if(!/^[0-9]{4,6}$/.test(pin)){overlay.querySelector("#pinModalError").textContent="Enter a valid 4–6 digit PIN.";input.focus();return;}finish(pin);});
+ });
+}
 let pendingTransfer=null;
 function closeTransferReview(){const existing=document.getElementById("transferReview");if(existing)existing.remove();pendingTransfer=null;}
 
@@ -746,9 +776,8 @@ function openTransferDialog(transfer,receipt){
    const confirm=card.querySelector("#transferConfirm"),cancel=card.querySelector("#transferCancel");
    confirm.disabled=true;cancel.disabled=true;confirm.textContent="Processing…";
    try{
-    const transactionPin=window.prompt("Enter the transaction PIN assigned to this account.");
+    const transactionPin=await requestTransactionPin();
     if(transactionPin===null){confirm.disabled=false;cancel.disabled=false;confirm.textContent="Confirm transfer";return;}
-    if(!/^[0-9]{4,6}$/.test(transactionPin)){throw new Error("Enter your 4–6 digit transaction PIN.");}
     const response=await sb.rpc("make_demo_recipient_transfer",{p_from_account_number:transfer.fromAccount,p_recipient_account_number:transfer.toAccount,p_amount:transfer.amount,p_description:(transfer.transferType+" · "+(transfer.description||"")),p_transaction_pin:transactionPin});
     if(response.error)throw response.error;
     const result=Array.isArray(response.data)?response.data[0]:response.data;
@@ -769,8 +798,11 @@ function openTransferDialog(transfer,receipt){
     console.error("Transfer confirmation failed:",error);
     const errorBox=card.querySelector("#transferError")||document.createElement("p");
     errorBox.id="transferError";errorBox.setAttribute("role","alert");
-    errorBox.style.cssText="margin:12px 0 0;padding:12px;border-radius:10px;background:#fff0f0;color:#a32335;font-size:13px;line-height:1.5";
-    errorBox.textContent=error?.message||"Transfer could not be completed. Please try again.";
+    const message=error?.message||"Transfer could not be completed. Please try again.";
+    const blocked=/blocked|restricted|suspended|account status|transfers? (?:are )?disabled|not permitted/i.test(message);
+    errorBox.className="transfer-alert";
+    errorBox.innerHTML='<span class="alert-icon">'+(blocked?'!':'i')+'</span><div><strong>'+(blocked?'Transfer unavailable':'We couldn’t complete that transfer')+'</strong><p></p></div>';
+    errorBox.querySelector("p").textContent=message;
     if(!errorBox.parentNode)card.querySelector(".transfer-review-actions").before(errorBox);
     confirm.disabled=false;cancel.disabled=false;confirm.textContent="Confirm transfer";
    }
