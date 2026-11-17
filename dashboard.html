@@ -390,6 +390,11 @@ body{background:linear-gradient(115deg,#f5f8ff,#edf3ff 60%,#e8f0ff)}
 #transferReview .transfer-alert strong{display:block;margin:1px 0 4px;font-size:14px;color:#92243a}
 #transferReview .transfer-alert p{margin:0;font-size:12px;line-height:1.5;color:#76515a}
 </style>
+<style id="transfer-processing-style">
+#transferReview .transfer-processing-spinner{width:58px;height:58px;border:5px solid #e5efff;border-top-color:#1455b8;border-right-color:#287cff;border-radius:50%;animation:transferSpin .8s linear infinite}
+@keyframes transferSpin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){#transferReview .transfer-processing-spinner{animation-duration:2.5s}}
+</style>
 </head>
 <body data-current-page="overview">
 <header class="topbar">
@@ -778,12 +783,17 @@ function openTransferDialog(transfer,receipt){
    try{
     const transactionPin=await requestTransactionPin();
     if(transactionPin===null){confirm.disabled=false;cancel.disabled=false;confirm.textContent="Confirm transfer";return;}
+    const processing=document.createElement("div");
+    processing.id="transferProcessingState";
+    processing.style.cssText="position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px;background:rgba(255,255,255,.98);border-radius:inherit;color:#14213d";
+    processing.innerHTML='<div class="transfer-processing-spinner" aria-hidden="true"></div><h3 style="margin:22px 0 8px;font-size:23px;color:#14213d">Processing your transfer</h3><p style="max-width:290px;margin:0;color:#687894;line-height:1.6;font-size:14px">Please keep this screen open. We’re securely confirming your payment.</p><div style="margin-top:20px;color:#1455b8;font-size:12px;font-weight:700;letter-spacing:.08em">PLEASE WAIT</div>';
+    card.style.position="relative";card.style.minHeight="360px";card.append(processing);
+    overlay.style.cursor="wait";overlay.dataset.processing="true";
     const response=await sb.rpc("make_demo_recipient_transfer",{p_from_account_number:transfer.fromAccount,p_recipient_account_number:transfer.toAccount,p_amount:transfer.amount,p_description:(transfer.transferType+" · "+(transfer.description||"")),p_transaction_pin:transactionPin});
     if(response.error)throw response.error;
     const result=Array.isArray(response.data)?response.data[0]:response.data;
     if(!result||result.success===false)throw new Error(result?.message||"The transfer service did not confirm this transaction.");
     const receiptData={...transfer,recipientName:result.recipient_name||transfer.recipientName||"Recipient",reference:result.reference||result.transaction_reference||""};
-    closeTransferReview();
     const {data:updated,error:refreshError}=await sb.from("bank_accounts").select("account_number,account_type,currency_code,available_balance,account_status,created_at").eq("user_id",currentUserId).order("created_at");
     if(!refreshError&&updated){
      customerAccounts=updated;
@@ -793,9 +803,10 @@ function openTransferDialog(transfer,receipt){
       if(account&&balance){const formatted=new Intl.NumberFormat("en-US",{style:"currency",currency:account.currency_code||"USD"}).format(Number(account.available_balance));balance.dataset.amount=formatted;balance.textContent=balancesHidden?"••••••":formatted;}
      });
     }else if(refreshError)console.error("Transfer succeeded but balance refresh failed:",refreshError);
-    await renderMyTransfers();openTransferDialog(receiptData,true);
+    await renderMyTransfers();closeTransferReview();openTransferDialog(receiptData,true);
    }catch(error){
     console.error("Transfer confirmation failed:",error);
+    card.querySelector("#transferProcessingState")?.remove();overlay.style.cursor="";delete overlay.dataset.processing;
     const errorBox=card.querySelector("#transferError")||document.createElement("p");
     errorBox.id="transferError";errorBox.setAttribute("role","alert");
     const message=error?.message||"Transfer could not be completed. Please try again.";
@@ -808,7 +819,7 @@ function openTransferDialog(transfer,receipt){
    }
   });
  }
- overlay.append(card);overlay.addEventListener("click",e=>{if(e.target===overlay)closeTransferReview();});document.body.append(overlay);
+ overlay.append(card);overlay.addEventListener("click",e=>{if(e.target===overlay&&!overlay.dataset.processing)closeTransferReview();});document.body.append(overlay);
  const focus=card.querySelector("button");if(focus)focus.focus();
 }
 document.getElementById("subPanel").addEventListener("submit",async e=>{
