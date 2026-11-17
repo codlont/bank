@@ -202,7 +202,43 @@ main{max-width:1440px}
  .account-card.primary .balance{font-size:34px}
 }
 
-@media(max-width:760px){.mobile-menu{display:none!important}.sidebar{display:none!important}.layout{display:block!important;min-height:calc(100vh - 72px)}main{padding-bottom:calc(104px + env(safe-area-inset-bottom))!important}.mobile-bottom-nav{position:fixed!important;left:0!important;right:0!important;bottom:0!important;width:100%!important;min-height:68px;padding:9px 8px calc(9px + env(safe-area-inset-bottom))!important;border-radius:20px 20px 0 0!important;border-left:0!important;border-right:0!important;border-bottom:0!important;z-index:999!important;box-shadow:0 -8px 28px #172c5a16!important;background:rgba(255,255,255,.97)!important;backdrop-filter:blur(20px)!important;-webkit-backdrop-filter:blur(20px)!important}.mobile-nav-item{gap:4px!important;padding:7px 3px!important}.mobile-nav-item svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.mobile-nav-item small{font-size:10px!important}}@media(min-width:761px){.mobile-bottom-nav{display:none!important}}.recipient-details{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:16px;border:1px solid #e2e9f7;border-radius:14px;background:#f7f9ff}.recipient-details input,.recipient-details select{width:100%;min-width:0;min-height:46px;padding:11px 12px;border:1px solid #e1e8f5;border-radius:9px;background:#fff;color:#172343;font:13px 'DM Sans',sans-serif}.recipient-details label{display:grid;gap:7px;font-size:11px;font-weight:650;color:#4c5872}.recipient-details .recipient-detail-wide{grid-column:1/-1}.recipient-details-title{grid-column:1/-1;font-size:12px;font-weight:750;color:#17469b;line-height:1.5}@media(max-width:600px){.recipient-details{grid-template-columns:1fr}.recipient-details .recipient-detail-wide{grid-column:auto}}</style>
+@media(max-width:760px){.mobile-menu{display:none!important}.sidebar{display:none!important}.layout{display:block!important;min-height:calc(100vh - 72px)}main{padding-bottom:calc(104px + env(safe-area-inset-bottom))!important}.mobile-bottom-nav{position:fixed!important;left:0!important;right:0!important;bottom:0!important;width:100%!important;min-height:68px;padding:9px 8px calc(9px + env(safe-area-inset-bottom))!important;border-radius:20px 20px 0 0!important;border-left:0!important;border-right:0!important;border-bottom:0!important;z-index:999!important;box-shadow:0 -8px 28px #172c5a16!important;background:rgba(255,255,255,.97)!important;backdrop-filter:blur(20px)!important;-webkit-backdrop-filter:blur(20px)!important}.mobile-nav-item{gap:4px!important;padding:7px 3px!important}.mobile-nav-item svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.mobile-nav-item small{font-size:10px!important}}@media(min-width:761px){.mobile-bottom-nav{display:none!important}}.recipient-details{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:16px;border:1px solid #e2e9f7;border-radius:14px;background:#f7f9ff}.recipient-details input,.recipient-details select{width:100%;min-width:0;min-height:46px;padding:11px 12px;border:1px solid #e1e8f5;border-radius:9px;background:#fff;color:#172343;font:13px 'DM Sans',sans-serif}.recipient-details label{display:grid;gap:7px;font-size:11px;font-weight:650;color:#4c5872}.recipient-details .recipient-detail-wide{grid-column:1/-1}.recipient-details-title{grid-column:1/-1;font-size:12px;font-weight:750;color:#17469b;line-height:1.5}@media(max-width:600px){.recipient-details{grid-template-columns:1fr}.recipient-details .recipient-detail-wide{grid-column:auto}}
+/* Standalone customer pages: remove the old home-page chrome and nested panels. */
+.sidebar,.mobile-menu{display:none!important}
+.layout{display:block!important;grid-template-columns:minmax(0,1fr)!important;min-height:calc(100vh - 76px)!important}
+body[data-current-page]:not([data-current-page="overview"]) .welcome{display:none!important}
+body[data-current-page]:not([data-current-page="overview"]) #overviewView{display:none!important}
+body[data-current-page]:not([data-current-page="overview"]) main{padding-top:clamp(22px,4vw,42px)!important}
+#subView{width:100%;max-width:1050px;margin:0 auto}
+#subView>.section-title{margin:8px 0 20px!important;align-items:center!important}
+#subView #subPanel{padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important}
+#subView[data-section="transactions"]>.section-title{display:flex!important}
+#subView[data-section="transactions"] .transaction-history-list{display:block!important;width:100%!important;margin:0!important;padding:clamp(20px,4vw,36px)!important;background:#fff!important;border:1px solid #e2e9f8!important;border-radius:24px!important;box-shadow:0 12px 32px #193c8010!important}
+#subView[data-section="transactions"] .transfer-activity-head{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:14px!important;margin:0 0 18px!important;align-items:start!important}
+#subView[data-section="transactions"] .transfer-hint{font-size:14px!important;line-height:1.55!important;color:#68748f!important}
+#subView[data-section="transactions"] .transfer-search{max-width:none!important;width:100%!important;min-height:52px!important;padding:14px 16px!important;border:1px solid #e1e8f6!important;border-radius:11px!important;background:#f7f9fe!important;font-size:14px!important}
+#subView[data-section="transactions"] .transfer-item{grid-template-columns:48px minmax(0,1fr) auto!important;gap:14px!important;padding:22px 8px!important;border-bottom:1px solid #edf1f8!important;border-radius:0!important}
+#subView[data-section="transactions"] .transfer-item-icon{width:44px!important;height:44px!important;font-size:21px!important}
+#subView[data-section="transactions"] .transfer-item-copy strong{font-size:15px!important;color:#111c3a!important}
+#subView[data-section="transactions"] .transfer-item-copy small{font-size:12px!important;line-height:1.55!important;color:#68748f!important}
+#subView[data-section="transactions"] .transfer-item-amount{font-size:15px!important}
+#subView[data-section="transactions"] .transfer-item-amount small{font-size:11px!important}
+#subView[data-section="transfers"]>.section-title{display:none!important}
+#subView[data-section="transfers"] .transfer-main{width:100%!important;max-width:760px!important;margin:0 auto!important}
+@media(max-width:760px){
+ .layout{min-height:calc(100vh - 72px)!important}
+ body[data-current-page]:not([data-current-page="overview"]) main{padding:20px 5.5% calc(112px + env(safe-area-inset-bottom))!important}
+ #subView>.section-title{margin:5px 0 17px!important}
+ #subView[data-section="transactions"] .transaction-history-list{padding:20px 16px!important;border-radius:22px!important}
+ #subView[data-section="transactions"] .transfer-item{grid-template-columns:40px minmax(0,1fr) auto!important;gap:9px!important;padding:19px 2px!important}
+ #subView[data-section="transactions"] .transfer-item-icon{width:36px!important;height:36px!important;font-size:18px!important}
+ #subView[data-section="transactions"] .transfer-item-copy strong{font-size:13px!important}
+ #subView[data-section="transactions"] .transfer-item-copy small{font-size:10px!important}
+ #subView[data-section="transactions"] .transfer-item-amount{font-size:12px!important}
+ #subView[data-section="transactions"] .transfer-item-amount small{font-size:9px!important}
+}
+
+</style>
 <style id="reference-home-design">
 :root{--blue:#0757e8;--navy:#071b62;--ink:#101a35;--muted:#66718d;--line:#e4eafb;--green:#0ca968}
 *{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif!important}
@@ -274,7 +310,7 @@ main{max-width:760px!important;padding:24px 5.5% 120px!important;margin:0 auto!i
 }
 @media(max-width:390px){.quick-grid{gap:7px!important}.quick{min-height:101px!important}.quick strong{font-size:11px!important}.hero-account-card{padding:22px 21px 18px!important}.hero-balance{font-size:34px!important}.security-art{opacity:.58;right:-15px}}
 </style></head>
-<body>
+<body data-current-page="overview">
 <header class="topbar">
  <div class="brand-wrap"><span class="brand-logo" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M7 10h10l8 17 8-17h9L27 39h-5z" fill="white"/><path d="M7 10h10l8 17-5 9z" fill="#dceaff" opacity=".9"/></svg></span><strong class="brand-name">Vercel Bank</strong></div>
  <div class="top-right"><button class="notification-button" id="notificationButton" type="button" aria-label="Notifications"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><i class="notification-dot" aria-hidden="true"></i></button><span class="avatar" id="topInitial">U</span></div>
@@ -447,13 +483,14 @@ async function renderMyTransfers(){
 }
 async function renderMyTransactions(){
  const panel=document.getElementById("subPanel");
- panel.innerHTML='<div class="transfer-activity transaction-history-list"><div class="transfer-activity-head"><div><h3>Transaction history</h3><p class="transfer-hint">All incoming and outgoing activity across your accounts.</p></div><input class="transfer-search" id="transactionSearch" type="search" placeholder="Search description or reference…" aria-label="Search transactions"></div><div class="transfer-list" id="transactionHistory"><div class="transfer-empty">Loading transaction history…</div></div></div>';
+ panel.innerHTML='<div class="transfer-activity transaction-history-list"><div class="transfer-activity-head"><p class="transfer-hint">All incoming and outgoing activity across your accounts.</p><input class="transfer-search" id="transactionSearch" type="search" placeholder="Search description or reference…" aria-label="Search transactions"></div><div class="transfer-list" id="transactionHistory"><div class="transfer-empty">Loading transaction history…</div></div></div>';
  const list=document.getElementById("transactionHistory");
  const {data:rows,error}=await sb.from("bank_transactions").select("*").or("sender_user_id.eq."+currentUserId+",recipient_user_id.eq."+currentUserId).order("created_at",{ascending:false}).limit(200);
  if(error){list.innerHTML='<div class="transfer-empty">Transaction history is temporarily unavailable. Please try again later.</div>';return;}
  const escapeHtml=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
  const formatDate=value=>value?new Intl.DateTimeFormat("en-US",{month:"long",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit",second:"2-digit"}).format(new Date(value)):"—";
- const cleanDescription=value=>String(value??"").replace(/\\b(?:simulated\\s+)?test\\s+record\\b/ig,"").replace(/\\s*[·|—-]\\s*/g," ").replace(/\\s{2,}/g," ").trim()||"—";
+ const cleanDescription=value=>String(value??"").replace(/\b(?:simulated\s+)?test\s+record\b/ig,"").replace(/\btest\b/ig,"").replace(/^\s*TEST-\s*/i,"").replace(/\s*[·|—-]\s*/g," ").replace(/\s{2,}/g," ").trim()||"—";
+ const cleanReference=value=>String(value??"").replace(/^\s*TEST-\s*/i,"").replace(/\btest\b/ig,"").trim()||"—";
  const senderNames=["Alex Morgan","Jordan Taylor","Casey Bennett","Riley Carter","Morgan Ellis","Cameron Brooks","Avery Parker","Jamie Collins","Drew Mitchell","Taylor Reed","Blake Foster","Quinn Hayes"];
  const stableSeed=value=>{let h=2166136261;for(const ch of String(value||"transaction")){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);}return h>>>0;};
  const randomFrom=row=>{
@@ -464,7 +501,7 @@ async function renderMyTransactions(){
   return name+" · "+account;
  };
  const render=(query="")=>{
-  const filtered=(rows||[]).filter(row=>(String(row.reference||"")+" "+String(row.description||"")+" "+String(row.transaction_type||"")+" "+String(row.status||"")).toLowerCase().includes(query.toLowerCase()));
+  const filtered=(rows||[]).filter(row=>(cleanReference(row.reference)+" "+cleanDescription(row.description)+" "+String(row.transaction_type||"")+" "+String(row.status||"")).toLowerCase().includes(query.toLowerCase()));
   if(!filtered.length){list.innerHTML='<div class="transfer-empty">'+(query?"No transactions match your search.":"No transactions found for this account.")+'</div>';return;}
   list.innerHTML=filtered.map((row,index)=>{
    const outgoing=row.transaction_type==="debit"||(row.transaction_type!=="credit"&&row.sender_user_id===currentUserId);
@@ -472,7 +509,7 @@ async function renderMyTransactions(){
    const date=formatDate(row.created_at);
    const amount=new Intl.NumberFormat("en-US",{style:"currency",currency:row.currency_code||"USD"}).format(Number(row.amount||0));
    const status=escapeHtml(String(row.status||"completed").toUpperCase());
-   return '<article class="transfer-item" role="button" tabindex="0" data-transaction-index="'+rows.indexOf(row)+'" aria-label="View details for '+escapeHtml(kind)+' '+amount+'"><span class="transfer-item-icon '+(outgoing?"":"in")+'">'+(outgoing?"↗":"↙")+'</span><div class="transfer-item-copy"><strong>'+escapeHtml(kind)+'</strong><small>'+escapeHtml(date)+' · Ref '+escapeHtml(row.reference||"Pending")+(row.description?" · "+escapeHtml(cleanDescription(row.description)):"")+'</small></div><div class="transfer-item-amount '+(outgoing?"out":"in")+'">'+(outgoing?"−":"+")+amount+'<small>'+status+'</small></div></article>';
+   return '<article class="transfer-item" role="button" tabindex="0" data-transaction-index="'+rows.indexOf(row)+'" aria-label="View details for '+escapeHtml(kind)+' '+amount+'"><span class="transfer-item-icon '+(outgoing?"":"in")+'">'+(outgoing?"↗":"↙")+'</span><div class="transfer-item-copy"><strong>'+escapeHtml(kind)+'</strong><small>'+escapeHtml(date)+' · Ref '+escapeHtml(cleanReference(row.reference||"Pending"))+(row.description?" · "+escapeHtml(cleanDescription(row.description)):"")+'</small></div><div class="transfer-item-amount '+(outgoing?"out":"in")+'">'+(outgoing?"−":"+")+amount+'<small>'+status+'</small></div></article>';
   }).join("");
  };
  render();
@@ -484,7 +521,7 @@ async function renderMyTransactions(){
    ["Transaction type",row.transaction_type|| (outgoing?"debit":"credit")],
    ["Status",String(row.status||"completed").toUpperCase()],
    ["Date & time",formatDate(row.created_at)],
-   ["Reference",row.reference||"—"],
+   ["Reference",cleanReference(row.reference)],
    ["Amount",amount],
    ["Currency",row.currency_code||"USD"],
    ["Description",cleanDescription(row.description)],
@@ -520,7 +557,7 @@ async function renderOverviewActivity(){
   const stamp=new Date(row.created_at);
   const date=new Intl.DateTimeFormat("en-US",{month:"short",day:"numeric",year:"numeric"}).format(stamp);
   const time=new Intl.DateTimeFormat("en-US",{hour:"2-digit",minute:"2-digit"}).format(stamp);
-  const description=String(row.description||"").replace(/^Demo transfer to\s*/i,"").replace(/^TEST RECORD\s*[·|—-]?\s*/i,"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const description=String(row.description||"").replace(/^Demo transfer to\s*/i,"").replace(/^TEST RECORD\s*[·|—-]?\s*/i,"").replace(/\btest\b/ig,"").replace(/\s*[·|—-]\s*/g," ").replace(/\s{2,}/g," ").trim().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   const isCard=/card/i.test(row.transaction_type||"")||/card payment/i.test(row.description||"");
   const title=isCard?"Card Payment":(outgoing?"Money Sent":"Money Received");
   const subtitle=isCard?(description||"Card transaction"):(outgoing?"To: ":"From: ")+(description||"Account transfer");
@@ -573,7 +610,7 @@ function renderDedicatedPage(key){
  panel.innerHTML='<section class="dedicated-page" data-page="'+key+'"><div class="empty-icon">'+page.icon+'</div><span class="eyebrow">'+page.lead.toUpperCase()+'</span><h3>'+page.title+'</h3><p class="dedicated-lead">'+page.body+'</p><div class="dedicated-options">'+page.items.map((item,i)=>'<div class="dedicated-option"><span>'+(i+1).toString().padStart(2,"0")+'</span><b>'+item+'</b></div>').join("")+'</div>'+(key==="support"?'<a class="profile-link" href="support.html">Open customer support →</a>':'')+'</section>';
 }
 
-function showSection(key){if(!Object.prototype.hasOwnProperty.call(sections,key))key="overview";const s=sections[key];try{if(key==="overview")localStorage.removeItem("bankDashboardSection");else localStorage.setItem("bankDashboardSection",key);}catch(storageError){}const nextUrl=key==="overview"?(location.pathname+location.search):(location.pathname+location.search+"#"+key);if(location.pathname+location.search+location.hash!==nextUrl)history.replaceState(null,"",nextUrl);document.querySelectorAll(".side-link").forEach(b=>b.classList.toggle("active",b.dataset.section===key));document.getElementById("overviewView").hidden=key!=="overview";document.getElementById("subView").hidden=key==="overview";document.getElementById("subTitle").textContent=s[0];document.getElementById("subView").dataset.section=key;document.getElementById("sidebar").classList.remove("open");document.querySelectorAll(".mobile-nav-item").forEach(item=>item.classList.toggle("active",({overview:"overview",transactions:"transactions",cards:"cards",support:"support",profile:"profile"})[key]===item.dataset.goto));if(key==="accounts")renderMyAccounts();else if(key==="transfers")renderMyTransfers();else if(key==="transactions")renderMyTransactions();else if(key==="profile")renderMyProfile();else if(["payments","cards","statements","support"].includes(key))renderDedicatedPage(key);window.scrollTo({top:0,behavior:"instant"});}
+function showSection(key){if(!Object.prototype.hasOwnProperty.call(sections,key))key="overview";document.body.dataset.currentPage=key;const s=sections[key];try{if(key==="overview")localStorage.removeItem("bankDashboardSection");else localStorage.setItem("bankDashboardSection",key);}catch(storageError){}const nextUrl=key==="overview"?(location.pathname+location.search):(location.pathname+location.search+"#"+key);if(location.pathname+location.search+location.hash!==nextUrl)history.replaceState(null,"",nextUrl);document.querySelectorAll(".side-link").forEach(b=>b.classList.toggle("active",b.dataset.section===key));document.getElementById("overviewView").hidden=key!=="overview";document.getElementById("subView").hidden=key==="overview";document.getElementById("subTitle").textContent=s[0];document.getElementById("subView").dataset.section=key;document.getElementById("sidebar").classList.remove("open");document.querySelectorAll(".mobile-nav-item").forEach(item=>item.classList.toggle("active",({overview:"overview",transactions:"transactions",cards:"cards",support:"support",profile:"profile"})[key]===item.dataset.goto));if(key==="accounts")renderMyAccounts();else if(key==="transfers")renderMyTransfers();else if(key==="transactions")renderMyTransactions();else if(key==="profile")renderMyProfile();else if(["payments","cards","statements","support"].includes(key))renderDedicatedPage(key);window.scrollTo({top:0,behavior:"instant"});}
 document.querySelectorAll(".side-link").forEach(b=>b.addEventListener("click",()=>showSection(b.dataset.section)));
 window.addEventListener("hashchange",()=>{const key=location.hash.slice(1);if(Object.prototype.hasOwnProperty.call(sections,key))showSection(key);else if(!key)showSection("overview");});
  document.querySelectorAll("[data-account-card]").forEach(card=>{
