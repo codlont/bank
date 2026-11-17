@@ -597,19 +597,7 @@ document.getElementById("subPanel").addEventListener("submit",async e=>{
  }
 });
 
-document.getElementById("subPanel").addEventListener("submit",e=>{
- if(e.target.id!=="withdrawalForm")return;
- e.preventDefault();
- const data=new FormData(e.target);
- const accountNumber=String(data.get("accountNumber")||"");
- const amount=Number(data.get("amount"));
- const description=String(data.get("description")||"").trim();
- const account=customerAccounts.find(a=>a.account_number===accountNumber);
- if(!account||account.account_status!=="active"){toast("Choose an active account.");return;}
- if(!Number.isFinite(amount)||amount<=0||Math.round(amount*100)!==amount*100){toast("Enter a valid amount with up to two decimal places.");return;}
- if(amount>Number(account.available_balance||0)){toast("Your available balance is not sufficient.");return;}
- openWithdrawalDialog({accountNumber,amount,description});
-});
+
 
 document.getElementById("subPanel").addEventListener("submit",async e=>{
  if(e.target.id!=="transferForm")return;e.preventDefault();
