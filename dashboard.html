@@ -537,8 +537,9 @@ async function renderMyTransactions(){
  const panel=document.getElementById("subPanel");
  panel.innerHTML='<div class="transfer-activity transaction-history-list"><div class="transfer-activity-head"><div><p class="transfer-hint">All incoming and outgoing activity across your accounts.</p></div><input class="transfer-search" id="transactionSearch" type="search" placeholder="Search description or reference…" aria-label="Search transactions"></div><div class="transfer-list" id="transactionHistory"><div class="transfer-empty">Loading transaction history…</div></div></div>';
  const list=document.getElementById("transactionHistory");
- const {data:rows,error}=await sb.from("bank_transactions").select("*").or("sender_user_id.eq."+currentUserId+",recipient_user_id.eq."+currentUserId).order("created_at",{ascending:false}).limit(1000);
+ const {data:loadedRows,error}=await sb.from("bank_transactions").select("*").or("sender_user_id.eq."+currentUserId+",recipient_user_id.eq."+currentUserId).order("created_at",{ascending:false}).limit(1000);
  if(error){list.innerHTML='<div class="transfer-empty">Transaction history is temporarily unavailable. Please try again later.</div>';return;}
+ const rows=(loadedRows||[]).filter(row=>!/^\s*(?:simulated\s+)?test\s+record\b/i.test(String(row.description||"")));
  const escapeHtml=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
  const formatDate=value=>value?new Intl.DateTimeFormat("en-US",{month:"long",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit",second:"2-digit"}).format(new Date(value)):"—";
  const cleanDescription=value=>String(value??"").replace(/\b(?:simulated\s+)?test\s+record\b/ig," ").replace(/\btest\b/ig," ").replace(/\s*[·|—-]\s*/g," ").replace(/\s{2,}/g," ").trim()||"—";
@@ -614,9 +615,10 @@ async function renderMyTransactions(){
 }
 async function renderOverviewActivity(){
  const box=document.getElementById("overviewActivity");if(!box||!currentUserId)return;
- const {data:rows,error}=await sb.from("bank_transactions").select("reference,sender_user_id,recipient_user_id,amount,currency_code,description,status,created_at,transaction_type,is_synthetic").or("sender_user_id.eq."+currentUserId+",recipient_user_id.eq."+currentUserId).order("created_at",{ascending:false}).limit(3);
+ const {data:loadedRows,error}=await sb.from("bank_transactions").select("reference,sender_user_id,recipient_user_id,amount,currency_code,description,status,created_at,transaction_type,is_synthetic").or("sender_user_id.eq."+currentUserId+",recipient_user_id.eq."+currentUserId).order("created_at",{ascending:false}).limit(50);
  if(error){box.innerHTML='<div class="empty"><strong>Activity unavailable</strong><p>We could not load your recent transactions. Please try again later.</p></div>';return;}
- if(!rows||!rows.length){box.innerHTML='<div class="empty"><div class="empty-icon">↗</div><strong>No activity yet</strong><p>When you send or receive a transfer, it will appear here.</p></div>';return;}
+ const rows=(loadedRows||[]).filter(row=>!/^\s*(?:simulated\s+)?test\s+record\b/i.test(String(row.description||""))).slice(0,3);
+ if(!rows.length){box.innerHTML='<div class="empty"><div class="empty-icon">↗</div><strong>No activity yet</strong><p>When you send or receive a transfer, it will appear here.</p></div>';return;}
  box.innerHTML=rows.map(row=>{
   const outgoing=row.transaction_type==="debit"||(row.transaction_type!=="credit"&&row.sender_user_id===currentUserId);
   const money=new Intl.NumberFormat("en-US",{style:"currency",currency:row.currency_code||"USD"}).format(Number(row.amount||0));
@@ -626,7 +628,8 @@ async function renderOverviewActivity(){
   const description=String(row.description||"").replace(/^Demo transfer to\s*/i,"").replace(/\b(?:simulated\s+)?test\s+record\b/ig," ").replace(/\btest\b/ig," ").replace(/\s*[·|—-]\s*/g," ").replace(/\s{2,}/g," ").trim().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   const isCard=/card/i.test(row.transaction_type||"")||/card payment/i.test(row.description||"");
   const title=isCard?"Card Payment":(outgoing?"Money Sent":"Money Received");
-  const subtitle=isCard?(description||"Card transaction"):(outgoing?"To: ":"From: ")+(description||"Account transfer");
+  const companyPayment=outgoing&&/online|merchant|bill payment|utility|subscription|service payment|retail purchase|grocery purchase|transport payment/i.test(row.description||"");
+   const subtitle=isCard?(description||"Card transaction"):(companyPayment?"Company: "+(description||"Company"):(outgoing?"To: ":"From: ")+(description||"Account transfer"));
   const icon=isCard?"▣":(outgoing?"↑":"↓");
   const kind=isCard?"card":(outgoing?"outgoing":"incoming");
   return '<div class="overview-activity-row"><span class="overview-activity-icon '+kind+'">'+icon+'</span><div class="overview-activity-info"><strong>'+title+'</strong><small>'+subtitle+'</small></div><b class="'+(outgoing?"outgoing":"incoming")+'">'+(outgoing?"−":"+")+money+'<small class="activity-time">'+date+' · '+time+'</small></b></div>';
