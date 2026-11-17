@@ -738,7 +738,7 @@ async function renderDedicatedPage(key){
  const panel=document.getElementById("subPanel");
  const escValue=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
  if(key==="cards"){
-  panel.innerHTML='<section class="dedicated-page"><span class="eyebrow">YOUR CARD CENTRE</span><h3>My cards</h3><p class="dedicated-lead">Cards assigned to your accounts by the administrator.</p><div id="myAssignedCards" class="account-detail-list">Loading your cards…</div></section>';
+  panel.innerHTML='<section class="dedicated-page"><span class="eyebrow">YOUR CARD CENTRE</span><h3>My cards</h3><div id="myAssignedCards" class="account-detail-list">Loading your cards…</div></section>';
   const {data,error}=await sb.from("bank_cards").select("id,account_id,card_network,card_type,cardholder_name,last_four,status,card_number,expiry_month,expiry_year,cvv,created_at").eq("user_id",currentUserId).order("created_at",{ascending:false});
   const box=document.getElementById("myAssignedCards");if(!box)return;
   if(error){box.textContent="Your cards could not be loaded: "+error.message;return;}
@@ -969,7 +969,6 @@ document.querySelectorAll(".quick").forEach(b=>b.addEventListener("click",()=>{c
 var _smartsupp=window._smartsupp||{};
 _smartsupp.key='513db062fbcd7c63ecd3e5b04f60443504ca2f02';
 _smartsupp.hideWidget=true;
-_smartsupp.hideMobileWidget=true;
 window._smartsupp=_smartsupp;
 window.smartsupp||(function(d){
   var s,c,o=window.smartsupp=function(){o._.push(arguments)};
@@ -995,8 +994,26 @@ body.has-mobile-more #fixedSmartsuppLauncher{bottom:calc(88px + env(safe-area-in
  document.body.appendChild(button);
  function positionChatAboveMore(){const mobile=window.matchMedia("(max-width:760px)").matches;const moreNav=document.querySelector(".mobile-bottom-nav,[data-mobile-nav],[data-action=\"More\"]");document.body.classList.toggle("has-mobile-more",mobile&&!!moreNav);}positionChatAboveMore();window.addEventListener("resize",positionChatAboveMore);
  button.addEventListener("click",function(){
-  if(typeof window.smartsupp==="function"){window.smartsupp("chat:show");window.smartsupp("chat:open");}
-  else{button.title="Chat is loading. Please try again.";}
+  button.disabled=true;
+  button.setAttribute("aria-busy","true");
+  button.title="Opening live chat…";
+  if(typeof window.smartsupp==="function"){
+   window.smartsupp("chat:show");
+   window.smartsupp("chat:open");
+   window.setTimeout(function(){
+    if(typeof window.smartsupp==="function"){
+     window.smartsupp("chat:show");
+     window.smartsupp("chat:open");
+    }
+    button.disabled=false;
+    button.removeAttribute("aria-busy");
+    button.title="Live chat";
+   },700);
+  }else{
+   button.disabled=false;
+   button.removeAttribute("aria-busy");
+   button.title="Chat is still loading. Please try again.";
+  }
  });
 })();
 </script>
