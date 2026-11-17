@@ -1002,7 +1002,7 @@ body.has-mobile-more #fixedSmartsuppLauncher{bottom:calc(88px + env(safe-area-in
   window.setTimeout(function(){button.disabled=false;button.removeAttribute("aria-busy");if(button.title!=="Chat is still loading. Please try again.")button.title="Live chat";},450);
  });
  if(typeof window.smartsupp==="function"){
-  window.smartsupp("on","messenger_close",function(){window.setTimeout(function(){if(typeof window.smartsupp==="function")window.smartsupp("chat:hide");},80);});
+  window.smartsupp("on","messenger_close",function(){if(typeof window.smartsupp==="function")window.smartsupp("chat:hide");});
  }
 })();
 </script>
@@ -1070,7 +1070,7 @@ body.has-mobile-more #fixedSmartsuppLauncher{bottom:calc(88px + env(safe-area-in
    status.append(message,retry);
   }finally{loading=false;}
  }
- document.querySelectorAll('[data-bank-search]').forEach(button=>button.addEventListener('click',async()=>{
+ document.querySelectorAll('[data-bank-search]').forEach(button=>button.addEventListener('click',async(event)=>{event.preventDefault();event.stopPropagation();
   target=button.dataset.bankSearch;
   modal.classList.add('open');
   modal.setAttribute('aria-hidden','false');
