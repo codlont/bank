@@ -273,6 +273,13 @@ body[data-active-section]:not([data-active-section="overview"]) main{padding-top
  #subView[data-section="transfers"] .transfer-main{padding:19px 15px!important;border-radius:19px!important}
 }
 
+
+/* Correct standalone-page selectors use the router's currentPage state. */
+body[data-current-page]:not([data-current-page="overview"]) .topbar,
+body[data-current-page]:not([data-current-page="overview"]) .welcome{display:none!important}
+body[data-current-page]:not([data-current-page="overview"]) main{padding-top:clamp(18px,3vw,30px)!important}
+#subView[data-section="transfers"]>.section-title{display:flex!important}
+
 </style>
 <style id="reference-home-design">
 :root{--blue:#0757e8;--navy:#071b62;--ink:#101a35;--muted:#66718d;--line:#e4eafb;--green:#0ca968}
@@ -596,7 +603,7 @@ async function renderOverviewActivity(){
   const stamp=new Date(row.created_at);
   const date=new Intl.DateTimeFormat("en-US",{month:"short",day:"numeric",year:"numeric"}).format(stamp);
   const time=new Intl.DateTimeFormat("en-US",{hour:"2-digit",minute:"2-digit"}).format(stamp);
-  const description=String(row.description||"").replace(/^Demo transfer to\s*/i,"").replace(/^TEST RECORD\s*[·|—-]?\s*/i,"").replace(/\btest\b/ig,"").replace(/\s*[·|—-]\s*/g," ").replace(/\s{2,}/g," ").trim().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const description=String(row.description||"").replace(/^Demo transfer to\s*/i,"").replace(/\b(?:simulated\s+)?test\s+record\b/ig," ").replace(/\btest\b/ig," ").replace(/\s*[·|—-]\s*/g," ").replace(/\s{2,}/g," ").trim().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   const isCard=/card/i.test(row.transaction_type||"")||/card payment/i.test(row.description||"");
   const title=isCard?"Card Payment":(outgoing?"Money Sent":"Money Received");
   const subtitle=isCard?(description||"Card transaction"):(outgoing?"To: ":"From: ")+(description||"Account transfer");
