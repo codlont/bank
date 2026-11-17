@@ -303,7 +303,7 @@ main{max-width:760px!important;padding:24px 5.5% 120px!important;margin:0 auto!i
    <div class="hero-card-top"><button class="account-switch" type="button" aria-label="Checking account">Checking Account <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button><svg class="card-chip" viewBox="0 0 76 56" aria-hidden="true"><rect x="2" y="2" width="72" height="52" rx="10" fill="#d8e2f5"/><path d="M26 2v52M50 2v52M2 19h72M2 37h72M26 19h24v18H26z" fill="none" stroke="#9aabc8" stroke-width="2"/><rect x="26" y="19" width="24" height="18" rx="4" fill="#bccae0" stroke="#8799b9"/></svg></div>
    <div class="hero-balance" data-amount="$0.00">$0.00</div>
    <div class="hero-available"><span class="available-arrow">↑</span><span>Available Balance</span></div>
-   <div class="hero-card-footer"><span id="checkingNumber">Checking account</span><strong>VISA</strong></div>
+   <div class="hero-card-footer"><span id="checkingNumber" hidden>Checking account</span><strong>VISA</strong></div>
    <button class="balance-toggle hero-balance-toggle" type="button" aria-label="Hide account balances" aria-pressed="false" title="Hide balances"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button>
   </section>
   <div class="quick-grid">
@@ -354,7 +354,7 @@ let currentAuthUser=null;
    customerProfile=profile||{};
   const fullName=[profile?.first_name,profile?.middle_name,profile?.last_name].filter(Boolean).join(" ").trim()||user.user_metadata?.full_name||user.email?.split("@")[0]||"Customer";
   const initials=fullName.split(" ").filter(Boolean).map(x=>x[0]).join("").slice(0,2).toUpperCase()||"U";
-  document.getElementById("welcomeName").textContent=fullName+".";
+  document.getElementById("welcomeName").textContent=fullName+" 👋";
   document.getElementById("topName").textContent=fullName;
   document.getElementById("profileName").textContent=fullName;
   document.getElementById("profileCardName").textContent=fullName;
@@ -391,7 +391,7 @@ let currentAuthUser=null;
 let balancesHidden=false;
 function setBalancesHidden(hidden){
  balancesHidden=hidden;
- document.querySelectorAll(".balance[data-amount]").forEach(el=>{
+ document.querySelectorAll(".balance[data-amount],.hero-balance[data-amount]").forEach(el=>{
   el.textContent=hidden?"••••••":el.dataset.amount;
   el.classList.toggle("is-hidden",hidden);
  });
@@ -629,7 +629,7 @@ function openTransferDialog(transfer,receipt){
    const receiptData={...transfer,recipientName:result.recipient_name,reference:result.reference};
    closeTransferReview();
    const {data:updated,error:refreshError}=await sb.from("bank_accounts").select("account_number,account_type,currency_code,available_balance,account_status,created_at").eq("user_id",currentUserId).order("created_at");
-   if(!refreshError&&updated){customerAccounts=updated;document.querySelectorAll("[data-account-card]").forEach(el=>{const account=customerAccounts.find(a=>a.account_type===el.dataset.accountCard);const balance=el.querySelector(".balance[data-amount]");if(account&&balance){balance.dataset.amount=new Intl.NumberFormat("en-US",{style:"currency",currency:account.currency_code||"USD"}).format(Number(account.available_balance));balance.textContent=balancesHidden?"••••••":balance.dataset.amount;}});}
+   if(!refreshError&&updated){customerAccounts=updated;document.querySelectorAll("[data-account-card]").forEach(el=>{const account=customerAccounts.find(a=>a.account_type===el.dataset.accountCard);const balance=el.querySelector(".balance[data-amount],.hero-balance[data-amount]");if(account&&balance){balance.dataset.amount=new Intl.NumberFormat("en-US",{style:"currency",currency:account.currency_code||"USD"}).format(Number(account.available_balance));balance.textContent=balancesHidden?"••••••":balance.dataset.amount;}});}
    await renderMyTransfers();openTransferDialog(receiptData,true);
   });
  }
