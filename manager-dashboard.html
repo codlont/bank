@@ -206,41 +206,35 @@ el('remove-money').addEventListener('click',()=>adjustSelectedBalance('remove'))
 el('edit-form').addEventListener('submit',async e=>{
  e.preventDefault();if(!selected)return;
  const balance=Number(el('balance').value),accountNumber=el('account-number').value.trim(),status=el('status').value;
+ const transactionPin=el('transaction-pin').value.trim(),loginPin=el('login-security-pin').value.trim();
  if(!/^[0-9]{9,12}$/.test(accountNumber)){el('edit-message').textContent='Enter an account number containing 9 to 12 digits.';el('edit-message').classList.add('show');return;}
  if(!Number.isFinite(balance)||balance<0){el('edit-message').textContent='Enter a valid non-negative balance.';el('edit-message').classList.add('show');return;}
+ if(transactionPin&&!/^[0-9]{4,6}$/.test(transactionPin)){el('edit-message').textContent='Transaction PIN must contain 4 to 6 digits.';el('edit-message').classList.add('show');return;}
+ if(loginPin&&!/^[0-9]{6}$/.test(loginPin)){el('edit-message').textContent='Login security PIN must contain exactly 6 digits.';el('edit-message').classList.add('show');return;}
+ const accountId=selected.id,userId=selected.user_id;
  const btn=el('save');btn.disabled=true;btn.textContent='Saving…';el('edit-message').classList.remove('show');
  try{
-  const savePromise=sb.rpc('manager_save_account_changes',{
-   p_account_id:selected.id,p_user_id:selected.user_id,p_balance:balance,p_account_number:accountNumber,
-   p_status:status,p_status_scope:el('status-scope').value,p_transfers_blocked:el('transfers-blocked').checked,
-   p_transfer_block_message:el('block-message').value.trim(),
-   p_first_name:el('admin-first-name').value.trim(),p_middle_name:el('admin-middle-name').value.trim(),
-   p_last_name:el('admin-last-name').value.trim(),p_phone:el('admin-phone').value.trim(),
-   p_country_of_residence:el('admin-country').value.trim(),p_address_line_1:el('admin-address-1').value.trim(),
-   p_address_line_2:el('admin-address-2').value.trim(),p_city:el('admin-city').value.trim(),
-   p_state_region:el('admin-state').value.trim(),p_postal_code:el('admin-postal').value.trim()
-  });
-  const result=await Promise.race([savePromise,new Promise((_,reject)=>setTimeout(()=>reject(new Error('The save request timed out. Please check your connection and try again.')),20000))]);
+  const result=await Promise.race([
+   sb.rpc('manager_save_account_changes_with_pins',{
+    p_account_id:accountId,p_user_id:userId,p_balance:balance,p_account_number:accountNumber,
+    p_status:status,p_status_scope:el('status-scope').value,p_transfers_blocked:el('transfers-blocked').checked,
+    p_transfer_block_message:el('block-message').value.trim(),
+    p_first_name:el('admin-first-name').value.trim(),p_middle_name:el('admin-middle-name').value.trim(),
+    p_last_name:el('admin-last-name').value.trim(),p_phone:el('admin-phone').value.trim(),
+    p_country_of_residence:el('admin-country').value.trim(),p_address_line_1:el('admin-address-1').value.trim(),
+    p_address_line_2:el('admin-address-2').value.trim(),p_city:el('admin-city').value.trim(),
+    p_state_region:el('admin-state').value.trim(),p_postal_code:el('admin-postal').value.trim(),
+    p_transaction_pin:transactionPin||null,p_login_security_pin:loginPin||null
+   }),
+   new Promise((_,reject)=>setTimeout(()=>reject(new Error('The save request timed out. Check your connection and try again.')),25000))
+  ]);
   if(result.error)throw result.error;
-  const pin=el('transaction-pin').value.trim();
-  if(pin){
-   const pinResult=await Promise.race([sb.rpc('manager_set_account_transaction_pin',{p_account_id:selected.id,p_pin:pin}),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Account details saved, but setting the transaction PIN timed out. Reopen the account and retry the PIN.')),20000))]);
-   if(pinResult.error)throw new Error('Account details saved, but the transaction PIN could not be updated: '+pinResult.error.message);
-  }
-  const loginPin=el('login-security-pin').value.trim();
-  if(loginPin){
-   if(!/^[0-9]{6}$/.test(loginPin))throw new Error('Login security PIN must contain exactly 6 digits.');
-   const loginPinResult=await Promise.race([sb.rpc('manager_set_account_login_security_pin',{p_account_id:selected.id,p_pin:loginPin}),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Account details saved, but setting the login security PIN timed out. Reopen the account and retry the PIN.')),20000))]);
-   if(loginPinResult.error)throw new Error('Account details saved, but the login security PIN could not be updated: '+loginPinResult.error.message);
-  }
   closeEditor();
-  await load();
+  try{await load();}catch(refreshError){console.warn('Account saved, but the manager list could not refresh:',refreshError);}
  }catch(err){
-  el('edit-message').textContent=err.message||'Could not update this account.';
+  el('edit-message').textContent=err.message||'Could not update this account. No changes were saved.';
   el('edit-message').classList.add('show');
- }finally{
-  btn.disabled=false;btn.textContent='Save account changes';
- }
+ }finally{btn.disabled=false;btn.textContent='Save account changes';}
 });
 el('close').addEventListener('click',closeEditor);el('cancel').addEventListener('click',closeEditor);el('modal').addEventListener('click',e=>{if(e.target===el('modal'))closeEditor();});function fillGeneratorAccounts(){const select=el('gen-account');if(select)select.innerHTML=accounts.map(a=>{const p=customers.find(x=>x.id===a.user_id)||{};const name=[p.first_name,p.last_name].filter(Boolean).join(' ')||'Customer';const owner=p.email?' · '+p.email:'';return '<option value="'+esc(a.id)+'">'+esc(name+owner+' · '+a.account_type+' · '+a.account_number+' · '+money(a.available_balance))+'</option>';}).join('');const cards=el('card-account');if(cards)cards.innerHTML=accounts.map(a=>{const p=customers.find(x=>x.id===a.user_id)||{};const name=[p.first_name,p.last_name].filter(Boolean).join(' ')||p.email||'Customer';return '<option value="'+esc(a.id)+'">'+esc(name+' · '+a.account_number)+'</option>';}).join('');}
 function randomBetween(min,max){return Math.round((min+Math.random()*(max-min))*100)/100;}
