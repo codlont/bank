@@ -607,8 +607,9 @@ function bankVerifiedSessionKey(userId){return "bankPinVerifiedSession:"+userId;
   const pinSubmit=document.getElementById('security-submit');
   const pinForm=document.getElementById('security-pin-form');
   document.getElementById('security-signout').addEventListener('click',async()=>{
-   const signoutButton=document.getElementById('security-signout');signoutButton.disabled=true;signoutButton.textContent='Signing out…';
-   try{localStorage.removeItem(verifiedSessionKey);}catch(cacheError){}try{await sb.auth.signOut();}finally{location.replace('sign-in.html');}
+   const signoutButton=document.getElementById('security-signout');
+   signoutButton.disabled=true;signoutButton.textContent='Signing out…';
+   await finishCustomerSignOut(verifiedSessionKey);
   });
   const pinStatus=await sb.rpc('login_security_pin_status');
   if(pinStatus.error)throw pinStatus.error;
@@ -755,7 +756,28 @@ function setBalancesHidden(hidden){
 }
 document.querySelectorAll(".balance-toggle").forEach(btn=>btn.addEventListener("click",()=>setBalancesHidden(!balancesHidden)));
 
-async function signOutCustomer(){const {error}=await sb.auth.signOut();if(error){toast("Unable to sign out. Please try again.");return;}location.href="sign-in.html";}
+async function finishCustomerSignOut(verifiedKey){
+ try{if(verifiedKey)localStorage.removeItem(verifiedKey);}catch(storageError){}
+ try{
+  if(sb?.auth){
+   try{await sb.auth.signOut({scope:"local"});}catch(signOutError){console.warn("Server sign-out could not be completed; clearing this device's session.",signOutError);}
+   try{sb.auth.stopAutoRefresh();}catch(stopError){}
+   const storageKey=sb.auth.storageKey;
+   if(storageKey){
+    try{await sb.auth.storage?.removeItem(storageKey);}catch(storageError){}
+    try{localStorage.removeItem(storageKey);}catch(storageError){}
+    try{sessionStorage.removeItem(storageKey);}catch(storageError){}
+   }
+  }
+ }finally{
+  location.replace("sign-in.html");
+ }
+}
+async function signOutCustomer(){
+ const buttons=[document.getElementById("logout"),document.getElementById("topLogoutButton")];
+ buttons.forEach(button=>{if(button){button.disabled=true;button.setAttribute("aria-busy","true");}});
+ await finishCustomerSignOut(null);
+}
  document.getElementById("logout").addEventListener("click",signOutCustomer);
  document.getElementById("topLogoutButton").addEventListener("click",signOutCustomer);
  const profileMenu=document.getElementById("topProfileMenu"),profileTrigger=document.getElementById("topProfileButton");
