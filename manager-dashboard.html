@@ -83,8 +83,8 @@ input:focus,select:focus,textarea:focus{border-color:#8ab4f8!important;box-shado
  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div><h2 style="font:700 22px 'DM Sans',sans-serif;margin:0 0 6px;color:var(--ink)">Demo recipient directory</h2><p style="font-size:12px;color:var(--muted);margin:0">Create a complete demo bank profile. Customers must enter these exact details to verify a transfer recipient. These directory entries cannot receive funds.</p></div><span class="badge active">DEMO DIRECTORY</span></div>
  <form id="recipient-form" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:18px">
   <label style="font-size:12px;font-weight:700">Recipient full name<input id="recipient-name" maxlength="100" required placeholder="e.g. Jordan Taylor" class="recipient-input"></label>
-  <label style="font-size:12px;font-weight:700">Account number (12 digits)<input id="recipient-number" inputmode="numeric" pattern="[0-9]{12}" maxlength="12" minlength="12" required placeholder="Unique 12-digit number" class="recipient-input"></label>
-  <div class="bank-field"><label for="recipient-bank-name" style="font-size:12px;font-weight:700">Bank name</label><div class="bank-picker"><select id="recipient-bank-name" class="recipient-input" required><option value="Vercel Bank">Vercel Bank</option></select><button type="button" class="bank-search-trigger" data-bank-search="recipient-bank-name" aria-label="Search US banks" title="Search US banks">⌕</button></div></div>
+  <label style="font-size:12px;font-weight:700">Account number<input id="recipient-number" inputmode="numeric" pattern="[0-9]{9,12}" maxlength="12" minlength="9" required placeholder="Enter account number" class="recipient-input"></label>
+  <div class="bank-field"><label for="recipient-bank-name" style="font-size:12px;font-weight:700">Bank name</label><div class="bank-picker" data-bank-search="recipient-bank-name"><select id="recipient-bank-name" class="recipient-input" required><option value="">Select a bank</option></select><button type="button" class="bank-search-trigger" data-bank-search="recipient-bank-name" aria-label="Search US banks" title="Search US banks">⌕</button></div></div>
   <label style="font-size:12px;font-weight:700">Transfer type<select id="recipient-transfer-type" class="recipient-input" required><option value="Domestic">Domestic</option><option value="International">International</option></select></label>
   <label style="font-size:12px;font-weight:700">Account type<select id="recipient-account-type" class="recipient-input"><option>Checking</option><option>Savings</option><option>Current</option><option>Business</option></select></label>
   <label style="font-size:12px;font-weight:700"><span id="recipient-identifier-label">US routing number (9 digits)</span><input id="recipient-routing" inputmode="numeric" pattern="[0-9]{9}" maxlength="9" minlength="9" required placeholder="Enter 9-digit routing number" class="recipient-input"></label>
@@ -137,7 +137,7 @@ input:focus,select:focus,textarea:focus{border-color:#8ab4f8!important;box-shado
 <div class="notice"><b>Manager permissions:</b> You can view customer account records, update the available balance and change account status. Every balance/status change is recorded for review. These controls update this website's internal account ledger and do not move money through a bank payment network.</div>
 <section class="audit"><h2>Recent management activity</h2><div class="auditlist" id="audit"><div class="loading">Loading activity…</div></div></section>
 </main></div>
-<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><section class="dialog"><div class="dialoghead"><h2 id="modal-title">Manage account</h2><button class="close" id="close" aria-label="Close">×</button></div><div class="details" id="details"></div><form id="edit-form"><div class="field"><label for="balance">Available balance (USD)</label><input id="balance" type="number" min="0" step="0.01" required></div>
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><section class="dialog"><div class="dialoghead"><h2 id="modal-title">Manage account</h2><button class="close" id="close" aria-label="Close">×</button></div><div class="details" id="details"></div><form id="edit-form"><div class="field"><label for="balance">Available balance (USD)</label><input id="balance" type="number" min="0" step="0.01" required></div><div class="field"><label for="account-number">Account number (9–12 digits)</label><input id="account-number" type="text" inputmode="numeric" autocomplete="off" maxlength="12" minlength="9" pattern="[0-9]{9,12}" required></div>
 <div class="field" style="padding:15px;border:1px solid var(--line);border-radius:12px;background:#f7f9ff">
  <label for="balance-adjustment">Add or remove money</label>
  <input id="balance-adjustment" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="Enter amount in USD">
@@ -155,7 +155,7 @@ function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&l
 async function requireManager(){const {data:{session}}=await sb.auth.getSession();if(!session){location.replace('manager-login.html');return false;}const {data:role,error}=await sb.from('manager_users').select('role').eq('user_id',session.user.id).maybeSingle();if(error||!role){await sb.auth.signOut();location.replace('manager-login.html');return false;}manager=session.user;el('manager-email').textContent=session.user.email+' · '+role.role;return true;}
 function render(){const q=el('search').value.trim().toLowerCase();const rows=[];for(const p of customers){const accts=accounts.filter(a=>a.user_id===p.id);if(!accts.length){const hay=[p.first_name,p.middle_name,p.last_name,p.email,p.phone].join(' ').toLowerCase();if(!q||hay.includes(q))rows.push('<tr><td><span class="customer">'+esc([p.first_name,p.middle_name,p.last_name].filter(Boolean).join(' ')||'Customer')+'</span><span class="sub">'+esc(p.email)+'</span></td><td>—</td><td>Not assigned</td><td>—</td><td>—</td><td><span class="sub">No account found</span></td></tr>');continue;}for(const a of accts){const hay=[p.first_name,p.middle_name,p.last_name,p.email,p.phone,a.account_number,a.account_type].join(' ').toLowerCase();if(q&&!hay.includes(q))continue;rows.push('<tr><td><span class="customer">'+esc([p.first_name,p.middle_name,p.last_name].filter(Boolean).join(' ')||'Customer')+'</span><span class="sub">'+esc(p.email||'')+'</span></td><td>'+esc(a.account_number)+'</td><td>'+esc(a.account_type)+'</td><td>'+money(a.available_balance)+'</td><td><span class="badge '+esc(a.account_status)+'">'+esc(a.account_status)+'</span></td><td><button class="manage" data-account="'+esc(a.id)+'">Manage</button></td></tr>');}}el('rows').innerHTML=rows.join('')||'<tr><td colspan="6" class="empty">No matching customer accounts.</td></tr>';document.querySelectorAll('[data-account]').forEach(b=>b.addEventListener('click',()=>openEditor(b.dataset.account)));}
 async function load(){el('rows').innerHTML='<tr><td colspan="6" class="loading">Loading customer accounts…</td></tr>';try{const [p,a,log,m]=await Promise.all([sb.from('profiles').select('id,first_name,middle_name,last_name,email,phone,created_at').order('created_at',{ascending:false}),sb.from('bank_accounts').select('id,user_id,account_number,account_type,currency_code,available_balance,account_status,transfers_blocked,transfer_block_message,created_at').order('created_at',{ascending:false}),sb.from('manager_audit_log').select('id,action,old_balance,new_balance,old_status,new_status,created_at,bank_account_id').order('created_at',{ascending:false}).limit(12),sb.from('manager_users').select('user_id')]);if(p.error)throw p.error;if(a.error)throw a.error;if(log.error)throw log.error;if(m.error)throw m.error;const recipientsResult=await sb.from("demo_recipients").select("id,recipient_name,account_number,bank_name,bank_type,account_type,currency_code,country,routing_code,status,created_at").order("created_at",{ascending:false});if(recipientsResult.error)throw recipientsResult.error;demoRecipients=recipientsResult.data||[];renderDemoRecipients();const managerIds=new Set((m.data||[]).map(x=>x.user_id));customers=(p.data||[]).filter(x=>!managerIds.has(x.id));accounts=(a.data||[]).filter(x=>!managerIds.has(x.user_id));fillGeneratorAccounts();await loadAdminCards();await loadAdminTransactions();await loadSupportInbox();el('customer-count').textContent=customers.length;el('account-count').textContent=accounts.length;el('restricted-count').textContent=accounts.filter(x=>x.account_status!=='active').length;render();el('audit').innerHTML=(log.data||[]).map(x=>'<div class="auditrow"><div><b>'+esc(x.action.replaceAll('_',' '))+'</b><span> · '+esc(x.bank_account_id||'Account')+'</span></div><span>'+new Date(x.created_at).toLocaleString()+'</span></div>').join('')||'<div class="empty">No management changes recorded yet.</div>';}catch(err){el('rows').innerHTML='<tr><td colspan="6" class="empty">Could not load records: '+esc(err.message)+'</td></tr>';}}
-function openEditor(id){selected=accounts.find(a=>a.id===id);if(!selected)return;const p=customers.find(x=>x.id===selected.user_id)||{};el('details').textContent=[p.first_name,p.middle_name,p.last_name].filter(Boolean).join(' ')+' · '+(p.email||'')+' · Account '+selected.account_number;el('balance').value=Number(selected.available_balance).toFixed(2);el('balance-adjustment').value='';const profile=customers.find(x=>x.id===selected.user_id)||{};el('admin-first-name').value=profile.first_name||'';el('admin-middle-name').value=profile.middle_name||'';el('admin-last-name').value=profile.last_name||'';el('admin-phone').value=profile.phone||'';el('status').value=selected.account_status;el('transfers-blocked').checked=!!selected.transfers_blocked;el('block-message').value=selected.transfer_block_message||"Please contact support before making a transfer.";el('transaction-pin').value="";el('edit-message').classList.remove('show');el('modal').classList.add('open');document.body.classList.add('modal-open');el('modal').scrollTop=0;el('modal').querySelector('.dialog').scrollTop=0;}
+function openEditor(id){selected=accounts.find(a=>a.id===id);if(!selected)return;const p=customers.find(x=>x.id===selected.user_id)||{};el('details').textContent=[p.first_name,p.middle_name,p.last_name].filter(Boolean).join(' ')+' · '+(p.email||'')+' · Account '+selected.account_number;el('balance').value=Number(selected.available_balance).toFixed(2);el('account-number').value=String(selected.account_number||'');el('balance-adjustment').value='';const profile=customers.find(x=>x.id===selected.user_id)||{};el('admin-first-name').value=profile.first_name||'';el('admin-middle-name').value=profile.middle_name||'';el('admin-last-name').value=profile.last_name||'';el('admin-phone').value=profile.phone||'';el('status').value=selected.account_status;el('transfers-blocked').checked=!!selected.transfers_blocked;el('block-message').value=selected.transfer_block_message||"Please contact support before making a transfer.";el('transaction-pin').value="";el('edit-message').classList.remove('show');el('modal').classList.add('open');document.body.classList.add('modal-open');el('modal').scrollTop=0;el('modal').querySelector('.dialog').scrollTop=0;}
 function closeEditor(){el('modal').classList.remove('open');document.body.classList.remove('modal-open');selected=null;}
 async function adjustSelectedBalance(direction){
  if(!selected)return;
@@ -181,7 +181,7 @@ async function adjustSelectedBalance(direction){
 }
 el('add-money').addEventListener('click',()=>adjustSelectedBalance('add'));
 el('remove-money').addEventListener('click',()=>adjustSelectedBalance('remove'));
-el('edit-form').addEventListener('submit',async e=>{e.preventDefault();if(!selected)return;const balance=Number(el('balance').value),status=el('status').value;if(!Number.isFinite(balance)||balance<0){el('edit-message').textContent='Enter a valid non-negative balance.';el('edit-message').classList.add('show');return;}el('save').disabled=true;el('save').textContent='Saving…';try{const {data,error}=await sb.from('bank_accounts').update({available_balance:balance,account_status:status,transfers_blocked:el('transfers-blocked').checked,transfer_block_message:el('block-message').value.trim()||'Please contact support before making a transfer.'}).eq('id',selected.id).select('id').single();if(error)throw error;if(!data)throw new Error('No account was updated. Check your manager permissions.');const profileUpdate=await sb.rpc('manager_update_customer_profile',{p_user_id:selected.user_id,p_first_name:el('admin-first-name').value.trim(),p_middle_name:el('admin-middle-name').value.trim(),p_last_name:el('admin-last-name').value.trim(),p_phone:el('admin-phone').value.trim()});if(profileUpdate.error)throw profileUpdate.error;const pin=el('transaction-pin').value.trim();if(pin){const pinResult=await sb.rpc('manager_set_account_transaction_pin',{p_account_id:selected.id,p_pin:pin});if(pinResult.error)throw pinResult.error;}closeEditor();await load();}catch(err){el('edit-message').textContent=err.message||'Could not update this account.';el('edit-message').classList.add('show');}finally{el('save').disabled=false;el('save').textContent='Save account changes';}});
+el('edit-form').addEventListener('submit',async e=>{e.preventDefault();if(!selected)return;const balance=Number(el('balance').value),accountNumber=el('account-number').value.trim(),status=el('status').value;if(!/^[0-9]{9,12}$/.test(accountNumber)){el('edit-message').textContent='Enter an account number containing 9 to 12 digits.';el('edit-message').classList.add('show');return;}if(!Number.isFinite(balance)||balance<0){el('edit-message').textContent='Enter a valid non-negative balance.';el('edit-message').classList.add('show');return;}el('save').disabled=true;el('save').textContent='Saving…';try{const {data,error}=await sb.from('bank_accounts').update({available_balance:balance,account_number:accountNumber,account_status:status,transfers_blocked:el('transfers-blocked').checked,transfer_block_message:el('block-message').value.trim()||'Please contact support before making a transfer.'}).eq('id',selected.id).select('id').single();if(error)throw error;if(!data)throw new Error('No account was updated. Check your manager permissions.');const profileUpdate=await sb.rpc('manager_update_customer_profile',{p_user_id:selected.user_id,p_first_name:el('admin-first-name').value.trim(),p_middle_name:el('admin-middle-name').value.trim(),p_last_name:el('admin-last-name').value.trim(),p_phone:el('admin-phone').value.trim()});if(profileUpdate.error)throw profileUpdate.error;const pin=el('transaction-pin').value.trim();if(pin){const pinResult=await sb.rpc('manager_set_account_transaction_pin',{p_account_id:selected.id,p_pin:pin});if(pinResult.error)throw pinResult.error;}closeEditor();await load();}catch(err){el('edit-message').textContent=err.message||'Could not update this account.';el('edit-message').classList.add('show');}finally{el('save').disabled=false;el('save').textContent='Save account changes';}});
 el('close').addEventListener('click',closeEditor);el('cancel').addEventListener('click',closeEditor);el('modal').addEventListener('click',e=>{if(e.target===el('modal'))closeEditor();});function fillGeneratorAccounts(){const select=el('gen-account');if(select)select.innerHTML=accounts.map(a=>{const p=customers.find(x=>x.id===a.user_id)||{};const name=[p.first_name,p.last_name].filter(Boolean).join(' ')||'Customer';const owner=p.email?' · '+p.email:'';return '<option value="'+esc(a.id)+'">'+esc(name+owner+' · '+a.account_type+' · '+a.account_number+' · '+money(a.available_balance))+'</option>';}).join('');const cards=el('card-account');if(cards)cards.innerHTML=accounts.map(a=>{const p=customers.find(x=>x.id===a.user_id)||{};const name=[p.first_name,p.last_name].filter(Boolean).join(' ')||p.email||'Customer';return '<option value="'+esc(a.id)+'">'+esc(name+' · '+a.account_number)+'</option>';}).join('');}
 function randomBetween(min,max){return Math.round((min+Math.random()*(max-min))*100)/100;}
 el('generator-form').addEventListener('submit',async e=>{e.preventDefault();const accountId=el('gen-account').value,count=Number(el('gen-count').value),min=Number(el('gen-min').value),max=Number(el('gen-max').value),start=el('gen-start').value,end=el('gen-end').value,mode=el('gen-mode').value,msg=el('gen-message'),btn=el('gen-submit');const account=accounts.find(a=>a.id===accountId);if(!account){msg.textContent='Choose a customer account.';msg.style.display='block';return;}if(!Number.isInteger(count)||count<1||count>200||min<=0||max<min||!start||!end||start>end){msg.textContent='Check the count, amount range and date range. The maximum is 200 records.';msg.style.display='block';return;}const from=new Date(start+'T00:00:00Z').getTime(),to=new Date(end+'T23:59:59Z').getTime();const labels=['Card purchase test','Online purchase test','Utility payment test','Retail purchase test','Subscription payment test','Payroll test credit','Refund test credit','Deposit test credit','Service payment test','Grocery purchase test','Transport payment test','Transfer test credit'];const transactions=Array.from({length:count},()=>{const type=mode==='mixed'?(Math.random()<.5?'debit':'credit'):mode;const when=new Date(from+Math.random()*(to-from));return {type,amount:randomBetween(min,max),created_at:when.toISOString(),description:labels[Math.floor(Math.random()*labels.length)]};});btn.disabled=true;btn.textContent='Generating…';msg.style.display='block';msg.textContent='Creating '+count+' clearly identified test history records. Account balance will not change…';try{const {data,error}=await sb.functions.invoke('manager-generate-test-transactions',{body:{account_id:accountId,transactions}});if(error)throw error;const result=data?.result||{};msg.textContent='Created '+result.count+' history entries for '+(customers.find(p=>p.id===account.user_id)?.email||'the selected customer')+' · account '+account.account_number+'. The account balance was not changed.';await load();fillGeneratorAccounts();}catch(err){let detail=err.message||'Could not generate test records.';try{if(err.context&&typeof err.context.json==='function'){const payload=await err.context.json();detail=payload.error||payload.message||detail;}}catch(_){}msg.textContent=detail;}finally{btn.disabled=false;btn.textContent='Generate test history';}});
@@ -248,7 +248,7 @@ function showRecipientMessage(message,isError=false){const box=el('recipient-mes
 el('recipient-form').addEventListener('submit',async e=>{
  e.preventDefault();const name=el('recipient-name').value.trim(),number=el('recipient-number').value.trim(),transferType=el('recipient-transfer-type').value,routing=el('recipient-routing').value.trim(),button=el('recipient-submit');
  const validIdentifier=transferType==='International'?/^[A-Za-z0-9]{8}(?:[A-Za-z0-9]{3})?$/.test(routing):/^\d{9}$/.test(routing);
- if(name.length<2||!/^\d{12}$/.test(number)){showRecipientMessage('Enter a recipient name and a valid 12-digit account number.',true);return;}if(!validIdentifier){showRecipientMessage(transferType==='International'?'Enter a valid 8 or 11-character SWIFT/BIC code.':'Enter a valid 9-digit US routing number.',true);return;}
+ if(name.length<2||!/^\d{9,12}$/.test(number)){showRecipientMessage('Enter a full name and a valid account number (9–12 digits).',true);return;}if(!validIdentifier){showRecipientMessage(transferType==='International'?'Enter a valid 8 or 11-character SWIFT/BIC code.':'Enter a valid 9-digit US routing number.',true);return;}
  button.disabled=true;button.textContent='Creating…';
  try{const {error}=await sb.from('demo_recipients').insert({recipient_name:name,account_number:number,bank_name:el('recipient-bank-name').value.trim(),bank_type:transferType,account_type:el('recipient-account-type').value,currency_code:'USD',country:'United States',routing_code:routing,created_by:manager.id});if(error)throw error;el('recipient-form').reset();syncRecipientIdentifier();showRecipientMessage('Demo recipient created. Customers can now look up this account number.');await load();}
  catch(error){showRecipientMessage(error.message||'Could not create recipient. Check whether the account number is already in use.',true);}
@@ -261,80 +261,69 @@ el('search').addEventListener('input',render);el('refresh').addEventListener('cl
 html{width:100%;max-width:100%;overflow-x:hidden;-webkit-text-size-adjust:100%;}body{width:100%;max-width:100%;min-width:320px;overflow-x:hidden;}main,.layout,.heading,.stats,section{min-width:0;max-width:100%;}.heading h1,.heading p,.toolbar h2{overflow-wrap:anywhere;}.heading h1{font-weight:800!important;letter-spacing:-.7px!important;line-height:1.15!important;}.heading p{font-weight:500;}.eyebrow,.sidecap{font-weight:800!important;}.navitem{font-weight:750!important;}.toolbar h2,.dialog h2,.audit h2{font-weight:800!important;}.stat span{font-weight:650;}.stat strong{font-weight:800;}.tablewrap{max-width:100%;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;}input,select,textarea,button{max-width:100%;font-size:16px;} .field input,.field select,.recipient-input{min-width:0;width:100%;}.recipient-input{height:48px!important;font-weight:600!important;}@media(max-width:560px){main{padding-left:14px!important;padding-right:14px!important;padding-top:22px!important;}.top{max-width:100%;}.heading{gap:12px;}.heading h1{font-size:clamp(25px,7vw,32px)!important;}.heading p{max-width:none!important;font-size:13px!important;}.stats{grid-template-columns:repeat(2,minmax(0,1fr))!important;}.stat:last-child{grid-column:1/-1;}.stat strong{font-size:22px!important;}.toolbar{min-width:0;}.search{min-width:0;width:100%;}.dialog{width:100%;max-height:calc(100dvh - 24px);overflow:auto;padding:19px!important;}.actions{flex-wrap:wrap;}.save,.cancel{min-height:46px;}.recipient-input{font-size:16px!important;}}
 </style>
 <style id="us-bank-search-style">
-.bank-picker{display:flex;align-items:stretch;gap:7px;width:100%;margin-top:7px}.bank-picker select{flex:1;min-width:0;margin-top:0!important}.bank-search-trigger{width:48px;min-width:48px;border:1px solid #dbe4f3;border-radius:10px;background:#fff;color:#1455b8;font-size:26px;line-height:1;cursor:pointer}.bank-search-modal{position:fixed;inset:0;z-index:2147482500;background:#10182899;display:none;align-items:center;justify-content:center;padding:16px}.bank-search-modal.open{display:flex}.bank-search-panel{width:min(100%,480px);max-height:min(78dvh,680px);overflow:hidden;background:#fff;border-radius:16px;box-shadow:0 22px 70px #0003;display:flex;flex-direction:column}.bank-search-head{padding:17px 18px;border-bottom:1px solid #e9edf4;display:flex;align-items:center;justify-content:space-between;gap:12px}.bank-search-head strong{font-size:16px;font-weight:800;color:#172343}.bank-search-close{border:0;border-radius:50%;width:36px;height:36px;background:#f1f4f9;font-size:22px}.bank-search-input{margin:14px 16px 8px;width:calc(100% - 32px);height:48px;border:1px solid #dce4f0;border-radius:10px;padding:0 13px;font-size:16px!important;outline:none}.bank-search-results{overflow:auto;padding:0 12px 12px}.bank-search-result{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid #eff2f6;background:#fff;padding:13px 10px;font-size:14px;font-weight:650;color:#172343}.bank-search-status{padding:14px 18px;font-size:12px;color:#68758d}
+.bank-picker{display:flex;align-items:stretch;gap:7px;width:100%;margin-top:7px}.bank-picker select{flex:1;min-width:0;margin-top:0!important;pointer-events:none;cursor:pointer}.bank-search-trigger{width:48px;min-width:48px;border:1px solid #dbe4f3;border-radius:10px;background:#fff;color:#1455b8;font-size:26px;line-height:1;cursor:pointer}.bank-search-modal{position:fixed;inset:0;z-index:2147482500;background:#10182899;display:none;align-items:center;justify-content:center;padding:16px}.bank-search-modal.open{display:flex}.bank-search-panel{width:min(100%,480px);max-height:min(78dvh,680px);overflow:hidden;background:#fff;border-radius:16px;box-shadow:0 22px 70px #0003;display:flex;flex-direction:column}.bank-search-head{padding:17px 18px;border-bottom:1px solid #e9edf4;display:flex;align-items:center;justify-content:space-between;gap:12px}.bank-search-head strong{font-size:16px;font-weight:800;color:#172343}.bank-search-close{border:0;border-radius:50%;width:36px;height:36px;background:#f1f4f9;font-size:22px}.bank-search-input{margin:14px 16px 8px;width:calc(100% - 32px);height:48px;border:1px solid #dce4f0;border-radius:10px;padding:0 13px;font-size:16px!important;outline:none}.bank-search-results{overflow:auto;padding:0 12px 12px}.bank-search-result{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid #eff2f6;background:#fff;padding:13px 10px;font-size:14px;font-weight:650;color:#172343}.bank-search-status{padding:14px 18px;font-size:12px;color:#68758d}
 </style>
 <div class="bank-search-modal" id="usBankSearchModal" aria-hidden="true"><section class="bank-search-panel" role="dialog" aria-modal="true" aria-label="Search US banks"><header class="bank-search-head"><strong>Choose a US bank</strong><button type="button" class="bank-search-close" id="usBankSearchClose" aria-label="Close">×</button></header><input class="bank-search-input" id="usBankSearchInput" type="search" placeholder="Search bank name…" autocomplete="off"><div class="bank-search-status" id="usBankSearchStatus">Loading US banks…</div><div class="bank-search-results" id="usBankSearchResults"></div></section></div>
 <script id="us-bank-search-controller">
 (function(){
- if(window.__usBankPickerInstalled)return;
- window.__usBankPickerInstalled=true;
+ if(window.__vercelBankSearchInstalled)return;
+ window.__vercelBankSearchInstalled=true;
  const modal=document.getElementById('usBankSearchModal');
  const input=document.getElementById('usBankSearchInput');
  const results=document.getElementById('usBankSearchResults');
  const status=document.getElementById('usBankSearchStatus');
  const closeButton=document.getElementById('usBankSearchClose');
  if(!modal||!input||!results||!status||!closeButton)return;
- let banks=[],loaded=false,loading=false,target=null;
- const selects=()=>Array.from(document.querySelectorAll('[data-bank-search]')).map(button=>document.getElementById(button.dataset.bankSearch)).filter(Boolean);
- function populateSelects(){
-  selects().forEach(select=>{
-   const current=select.value||'Vercel Bank';
-   const names=['Vercel Bank',...banks.filter(name=>name.toLowerCase()!=='vercel bank')];
-   select.replaceChildren(...names.map(name=>new Option(name,name)));
-   select.value=names.includes(current)?current:'Vercel Bank';
-  });
- }
+ const fallback=['Ally Bank','American Express National Bank','Bank of America','Bank of the West','Barclays','Capital One','Charles Schwab Bank','Chase','Citibank','Citizens Bank','Discover Bank','Fifth Third Bank','Goldman Sachs Bank USA','HSBC Bank USA','Huntington National Bank','JPMorgan Chase Bank','KeyBank','Morgan Stanley Bank','Navy Federal Credit Union','PNC Bank','Regions Bank','Santander Bank','SoFi Bank','State Employees Credit Union','TD Bank','Truist Bank','U.S. Bank','Wells Fargo','Zions Bancorporation'];
+ let banks=[...fallback],target=null,loaded=false,loading=false;
+ const safe=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  function close(){modal.classList.remove('open');modal.setAttribute('aria-hidden','true');target=null;}
  closeButton.addEventListener('click',close);
  modal.addEventListener('click',e=>{if(e.target===modal)close();});
  function render(){
   const q=input.value.trim().toLowerCase();
-  const found=banks.filter(name=>!q||name.toLowerCase().includes(q)).slice(0,150);
-  results.innerHTML=found.map(name=>'<button type="button" class="bank-search-result" data-bank-name="'+name.replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'">'+name.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</button>').join('');
-  results.querySelectorAll('[data-bank-name]').forEach(btn=>btn.addEventListener('click',()=>{
-   if(!target)return;
-   const select=document.getElementById(target);
-   if(!select)return;
-   if(!Array.from(select.options).some(option=>option.value===btn.dataset.bankName))select.add(new Option(btn.dataset.bankName,btn.dataset.bankName));
-   select.value=btn.dataset.bankName;
-   select.dispatchEvent(new Event('change',{bubbles:true}));
-   close();
-  }));
-  status.textContent=found.length?(q?'Showing '+found.length+' matching banks':'Showing first '+found.length+' banks. Scroll the bank list or type to search.'):'No banks match that search.';
+  const found=banks.filter(name=>!q||name.toLowerCase().includes(q)).slice(0,250);
+  results.innerHTML=found.map(name=>'<button type="button" class="bank-search-result" data-bank-name="'+safe(name)+'">'+safe(name)+'</button>').join('');
+  status.textContent=found.length?(q?'Showing '+found.length+' matching banks':'Showing '+found.length+' banks. Type to narrow the list.'):'No banks match that search.';
  }
  async function load(){
   if(loaded||loading)return;
-  loading=true;
-  status.textContent='Loading the current US bank directory…';
+  loading=true;status.textContent='Loading bank directory…';
   try{
-   const response=await fetch('https://api.fdic.gov/banks/institutions?filters=ACTIVE%3A1&fields=NAME&limit=10000&sort_by=NAME&sort_order=ASC&format=json',{headers:{Accept:'application/json'}});
-   if(!response.ok)throw new Error('The bank directory could not be reached. Tap to retry.');
+   const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),9000);
+   const response=await fetch('https://api.fdic.gov/banks/institutions?filters=ACTIVE%3A1&fields=NAME&limit=10000&sort_by=NAME&sort_order=ASC&format=json',{headers:{Accept:'application/json'},signal:controller.signal});
+   clearTimeout(timeout);
+   if(!response.ok)throw new Error('Using the available bank list.');
    const payload=await response.json();
-   banks=[...new Set((payload.data||[]).map(row=>String((row.data&&row.data.NAME)||row.NAME||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
-   if(!banks.length)throw new Error('The bank directory returned no results. Tap to retry.');
+   const names=(payload.data||[]).map(row=>String(row?.data?.NAME||row?.NAME||'').trim()).filter(Boolean);
+   if(names.length)banks=[...new Set([...fallback,...names])].sort((a,b)=>a.localeCompare(b));
    loaded=true;
-   populateSelects();
-   render();
-  }catch(error){
-   status.innerHTML='';
-   const message=document.createElement('span');message.textContent=error.message||'Could not load US banks.';
-   const retry=document.createElement('button');retry.type='button';retry.textContent='Retry';retry.style.cssText='margin-left:10px;padding:7px 12px;border:0;border-radius:8px;background:#1455b8;color:white;font-weight:700';
-   retry.addEventListener('click',()=>load().then(render));
-   status.append(message,retry);
-  }finally{loading=false;}
+  }catch(error){loaded=true;}
+  finally{loading=false;render();}
  }
- document.querySelectorAll('[data-bank-search]').forEach(button=>button.addEventListener('click',async(event)=>{event.preventDefault();event.stopPropagation();
+ document.addEventListener('click',async event=>{
+  const button=event.target.closest('[data-bank-search]');
+  if(!button)return;
+  event.preventDefault();event.stopPropagation();
+  const select=document.getElementById(button.dataset.bankSearch);
+  if(!select)return;
   target=button.dataset.bankSearch;
-  modal.classList.add('open');
-  modal.setAttribute('aria-hidden','false');
-  input.value='';
-  results.innerHTML='';
-  status.textContent='Loading US banks…';
-  await load();
-  render();
-  input.focus();
- }));
+  modal.classList.add('open');modal.setAttribute('aria-hidden','false');
+  input.value='';results.innerHTML='';status.textContent='Loading bank directory…';
+  await load();render();
+  setTimeout(()=>input.focus(),50);
+ },true);
+ results.addEventListener('click',event=>{
+  const button=event.target.closest('[data-bank-name]');
+  if(!button||!target)return;
+  const select=document.getElementById(target);if(!select)return;
+  const name=button.dataset.bankName;
+  if(!Array.from(select.options).some(option=>option.value===name))select.add(new Option(name,name));
+  select.value=name;select.dispatchEvent(new Event('change',{bubbles:true}));close();
+ });
+ document.querySelectorAll('.bank-picker').forEach(picker=>picker.addEventListener('click',event=>{if(event.target.closest('.bank-search-trigger'))return;const select=picker.querySelector('select');if(select){event.preventDefault();const trigger=picker.querySelector('[data-bank-search]');if(trigger)trigger.click();}}));
  input.addEventListener('input',render);
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('open'))close();});
  load();
 })();
 </script>
