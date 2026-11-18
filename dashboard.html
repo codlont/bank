@@ -731,7 +731,8 @@ function bankVerifiedSessionKey(userId){return "bankPinVerifiedSession:"+userId;
   try{storedSection=localStorage.getItem("bankDashboardSection")||"";}catch(storageError){}
   const savedSection=Object.prototype.hasOwnProperty.call(sections,hashSection)?hashSection:storedSection;
   if(savedSection && Object.prototype.hasOwnProperty.call(sections,savedSection)) showSection(savedSection);
-  watchOverviewActivity();\n  if(savedSection==="overview"||!savedSection) renderOverviewActivity(true);
+  watchOverviewActivity();
+  if(savedSection==="overview"||!savedSection) renderOverviewActivity(true);
  }catch(err){
   console.error("Unable to load customer banking data:",err);
   toast("We couldn't load your account details. Please refresh.");
