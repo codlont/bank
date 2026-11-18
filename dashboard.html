@@ -460,8 +460,9 @@ body{background:linear-gradient(115deg,#f5f8ff,#edf3ff 60%,#e8f0ff)}
 @media(max-width:700px){.more-service-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.more-service-card{min-height:142px;padding:14px}.more-welcome{min-height:170px}.more-welcome-art{width:92px;height:90px;flex-basis:92px;margin-right:0;border-radius:20px}.more-welcome-art:before{width:65px;height:48px;left:12px;top:22px}.more-welcome-art:after{left:19px;top:15px}.more-welcome-art i{right:13px;bottom:18px}.more-welcome-art b{left:23px;bottom:25px}.more-routing-card{align-items:flex-start;flex-wrap:wrap}.more-routing-card>div:nth-child(2){min-width:calc(100% - 60px)}.more-routing-card>button{margin-left:58px}}
 @media(max-width:390px){.more-welcome{padding:20px}.more-welcome-art{display:none}.more-account-row{gap:8px}.more-account-row>strong{font-size:10px}.more-copy{padding:7px}.more-service-card>b{font-size:11px}}
 </style>
+<style id="security-pending-first-paint">body.security-pending>.topbar,body.security-pending>.layout{visibility:hidden}body.security-pending{min-height:100vh;background:#f4f7ff}</style>
 </head>
-<body data-current-page="overview">
+<body data-current-page="overview" class="security-pending">
 <div id="login-security-gate" hidden role="dialog" aria-modal="true" aria-labelledby="security-title">
  <div class="security-shell">
   <div class="security-brand"><span class="security-brand-mark">V</span><span>VERCEL BANK</span></div>
@@ -597,7 +598,7 @@ let currentAuthUser=null;
   if(pinStatus.error)throw pinStatus.error;
   const status=pinStatus.data||{};
   if(status.verified){
-   gate.hidden=true;document.body.classList.remove('security-gate-open');
+   gate.hidden=true;document.body.classList.remove('security-gate-open','security-pending');
   }else{
    gate.hidden=false;document.body.classList.add("security-gate-open");
    const previewResult=await sb.rpc('login_security_pin_preview');
@@ -644,7 +645,7 @@ let currentAuthUser=null;
       const {data,error}=await sb.rpc('verify_login_security_pin',{p_pin:pinInput.value});
       if(error)throw error;
       if(data?.ok){
-       gate.hidden=true;document.body.classList.remove('security-gate-open');resolve();
+       gate.hidden=true;document.body.classList.remove('security-gate-open','security-pending');resolve();
        return;
       }
       gateMessage.textContent=data?.message||'Unable to verify your security PIN.';
