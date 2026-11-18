@@ -460,10 +460,10 @@ body{background:linear-gradient(115deg,#f5f8ff,#edf3ff 60%,#e8f0ff)}
 @media(max-width:700px){.more-service-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.more-service-card{min-height:142px;padding:14px}.more-welcome{min-height:170px}.more-welcome-art{width:92px;height:90px;flex-basis:92px;margin-right:0;border-radius:20px}.more-welcome-art:before{width:65px;height:48px;left:12px;top:22px}.more-welcome-art:after{left:19px;top:15px}.more-welcome-art i{right:13px;bottom:18px}.more-welcome-art b{left:23px;bottom:25px}.more-routing-card{align-items:flex-start;flex-wrap:wrap}.more-routing-card>div:nth-child(2){min-width:calc(100% - 60px)}.more-routing-card>button{margin-left:58px}}
 @media(max-width:390px){.more-welcome{padding:20px}.more-welcome-art{display:none}.more-account-row{gap:8px}.more-account-row>strong{font-size:10px}.more-copy{padding:7px}.more-service-card>b{font-size:11px}}
 </style>
-<style id="security-pending-first-paint">body.security-pending>.topbar,body.security-pending>.layout{visibility:hidden}body.security-pending{min-height:100vh;background:#f4f7ff}</style>
+<style id="security-pending-first-paint">#customer-dashboard-shell[hidden]{display:none!important}#login-security-gate:not([hidden]){display:flex}body.security-pending{min-height:100vh;background:#f4f7ff}</style>
 </head>
 <body data-current-page="overview" class="security-pending">
-<div id="login-security-gate" hidden role="dialog" aria-modal="true" aria-labelledby="security-title">
+<div id="login-security-gate" role="dialog" aria-modal="true" aria-labelledby="security-title">
  <div class="security-shell">
   <div class="security-brand"><span class="security-brand-mark">V</span><span>VERCEL BANK</span></div>
   <section class="security-card">
@@ -490,6 +490,7 @@ body{background:linear-gradient(115deg,#f5f8ff,#edf3ff 60%,#e8f0ff)}
   </section>
  </div>
 </div>
+<div id="customer-dashboard-shell" hidden>
 <header class="topbar">
  <div class="brand-wrap"><span class="brand-logo" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M7 10h10l8 17 8-17h9L27 39h-5z" fill="white"/><path d="M7 10h10l8 17-5 9z" fill="#dceaff" opacity=".9"/></svg></span><strong class="brand-name">Vercel Bank</strong></div>
  <div class="top-right"><button class="notification-button" id="notificationButton" type="button" aria-label="Notifications"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><i class="notification-dot" aria-hidden="true"></i></button><button class="top-profile-button" id="topProfileButton" type="button" aria-label="Open profile menu" aria-expanded="false"><span class="avatar" id="topInitial">U</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7 5 5 5-5"/></svg></button><div class="top-profile-menu" id="topProfileMenu" hidden><div class="top-profile-menu-user"><b id="topProfileMenuName">Your profile</b><small id="topProfileMenuEmail"></small></div><button type="button" id="topLogoutButton">↪ Sign out</button></div></div>
@@ -543,6 +544,7 @@ body{background:linear-gradient(115deg,#f5f8ff,#edf3ff 60%,#e8f0ff)}
 <button class="mobile-nav-item" data-goto="support"><svg viewBox="0 0 24 24"><path d="M3 13v-2a9 9 0 0 1 18 0v2M3 13v4a2 2 0 0 0 2 2h2v-7H5a2 2 0 0 0-2 2zm18 0v4a2 2 0 0 1-2 2h-2v-7h2a2 2 0 0 1 2 2zM14 21h-4"/></svg><small>Support</small></button>
 <button class="mobile-nav-item" data-goto="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg><small>Profile</small></button>
 </nav>
+</div><!-- /customer-dashboard-shell -->
 <script>(function(){const k=window.__bankInitialSection||location.hash.slice(1)||"overview";const m={overview:"overview",transactions:"transactions",cards:"cards",addcard:"cards",support:"support",profile:"profile"};document.querySelectorAll(".mobile-nav-item").forEach(x=>x.classList.toggle("active",x.dataset.goto===m[k]));})();</script>
 <div class="toast" id="toast" role="status"></div>
 <script id="dashboard-section-first-paint">
@@ -598,7 +600,7 @@ let currentAuthUser=null;
   if(pinStatus.error)throw pinStatus.error;
   const status=pinStatus.data||{};
   if(status.verified){
-   gate.hidden=true;document.body.classList.remove('security-gate-open','security-pending');
+   gate.hidden=true;document.getElementById('customer-dashboard-shell').hidden=false;document.body.classList.remove('security-gate-open','security-pending');
   }else{
    gate.hidden=false;document.body.classList.add("security-gate-open");
    const previewResult=await sb.rpc('login_security_pin_preview');
@@ -645,7 +647,7 @@ let currentAuthUser=null;
       const {data,error}=await sb.rpc('verify_login_security_pin',{p_pin:pinInput.value});
       if(error)throw error;
       if(data?.ok){
-       gate.hidden=true;document.body.classList.remove('security-gate-open','security-pending');resolve();
+       gate.hidden=true;document.getElementById('customer-dashboard-shell').hidden=false;document.body.classList.remove('security-gate-open','security-pending');resolve();
        return;
       }
       gateMessage.textContent=data?.message||'Unable to verify your security PIN.';
