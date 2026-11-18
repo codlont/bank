@@ -550,62 +550,66 @@ let currentAuthUser=null;
   const pinDots=[...document.querySelectorAll('#security-pin-dots .security-dot')];
   const pinSubmit=document.getElementById('security-submit');
   const pinForm=document.getElementById('security-pin-form');
-  const [profilePreview,accountPreview,pinStatus]=await Promise.all([
-   sb.from('profiles').select('first_name,middle_name,last_name,email').eq('id',user.id).maybeSingle(),
-   sb.from('bank_accounts').select('account_number,account_type,account_status').eq('user_id',user.id).order('created_at'),
-   sb.rpc('login_security_pin_status')
-  ]);
-  if(profilePreview.error)throw profilePreview.error;
-  if(accountPreview.error)throw accountPreview.error;
+  const pinStatus=await sb.rpc('login_security_pin_status');
   if(pinStatus.error)throw pinStatus.error;
-  const preview=profilePreview.data||{};
-  const fullName=[preview.first_name,preview.middle_name,preview.last_name].filter(Boolean).join(' ').trim()||user.user_metadata?.full_name||user.email?.split('@')[0]||'Customer';
-  const initials=fullName.split(/\s+/).filter(Boolean).map(x=>x[0]).join('').slice(0,2).toUpperCase()||'VB';
-  document.getElementById('security-profile-name').textContent=fullName;
-  document.getElementById('security-profile-email').textContent=preview.email||user.email||'';
-  document.getElementById('security-avatar').textContent=initials;
-  const safeText=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const accountRows=(accountPreview.data||[]).map(a=>'<div class="security-account"><span>'+safeText((a.account_type||'Bank').replaceAll('_',' '))+' · •••• '+safeText(String(a.account_number||'').slice(-4))+'</span><b class="security-status">'+safeText(String(a.account_status||'').toUpperCase())+'</b></div>').join('');
-  document.getElementById('security-account-list').innerHTML=accountRows||'<div class="security-account"><span>Bank account</span><b>Contact support</b></div>';
   const status=pinStatus.data||{};
-  if(!status.configured){
-   gateMessage.textContent='Your login security PIN has not been activated yet. Please contact bank support to have it set up.';
-   gateMessage.classList.add('show');
-   document.getElementById('security-help').textContent='For your protection, account access stays locked until your login security PIN is activated.';
-   document.querySelectorAll('[data-security-digit],[data-security-clear],[data-security-backspace]').forEach(b=>b.disabled=true);
-  }else if(status.locked){
-   gateMessage.textContent='PIN verification is temporarily locked after too many incorrect attempts. Please try again after the 15-minute security lock.';
-   gateMessage.classList.add('show');
-   document.querySelectorAll('[data-security-digit],[data-security-clear],[data-security-backspace]').forEach(b=>b.disabled=true);
-   pinSubmit.disabled=true;
-  }
-  document.getElementById('security-signout').addEventListener('click',async()=>{
-   const signoutButton=document.getElementById('security-signout');signoutButton.disabled=true;signoutButton.textContent='Signing out…';
-   try{await sb.auth.signOut();}finally{location.replace('sign-in.html');}
-  });
-  const updateDots=()=>{pinDots.forEach((dot,i)=>dot.classList.toggle('filled',i<pinInput.value.length));pinSubmit.disabled=pinInput.value.length!==6||!status.configured||!!status.locked;};
-  document.querySelectorAll('[data-security-digit]').forEach(b=>b.addEventListener('click',()=>{if(pinInput.value.length<6){pinInput.value+=b.dataset.securityDigit;updateDots();}}));
-  document.querySelector('[data-security-clear]').addEventListener('click',()=>{pinInput.value='';updateDots();});
-  document.querySelector('[data-security-backspace]').addEventListener('click',()=>{pinInput.value=pinInput.value.slice(0,-1);updateDots();});
-  await new Promise(resolve=>{
-   pinForm.addEventListener('submit',async ev=>{
-    ev.preventDefault();if(pinSubmit.disabled)return;
-    pinSubmit.disabled=true;pinSubmit.textContent='Verifying…';gateMessage.classList.remove('show');
-    try{
-     const {data,error}=await sb.rpc('verify_login_security_pin',{p_pin:pinInput.value});
-     if(error)throw error;
-     if(data?.ok){
-      gate.hidden=true;document.body.classList.remove('security-gate-open');resolve();
-      return;
-     }
-     gateMessage.textContent=data?.message||'Unable to verify your security PIN.';
-     gateMessage.classList.add('show');
-     if(data?.locked||data?.setup_required){document.querySelectorAll('[data-security-digit],[data-security-clear],[data-security-backspace]').forEach(b=>b.disabled=true);}
-     pinInput.value='';updateDots();
-    }catch(pinError){gateMessage.textContent=pinError.message||'PIN verification failed. Please try again.';gateMessage.classList.add('show');pinInput.value='';updateDots();}
-    pinSubmit.textContent='Verify and continue';
+  if(status.verified){
+   gate.hidden=true;document.body.classList.remove('security-gate-open');
+  }else{
+   const previewResult=await sb.rpc('login_security_pin_preview');
+   if(previewResult.error)throw previewResult.error;
+   const previewData=previewResult.data||{};
+   const preview=previewData.profile||{};
+   const fullName=[preview.first_name,preview.middle_name,preview.last_name].filter(Boolean).join(' ').trim()||user.user_metadata?.full_name||user.email?.split('@')[0]||'Customer';
+   const initials=fullName.split(/\s+/).filter(Boolean).map(x=>x[0]).join('').slice(0,2).toUpperCase()||'VB';
+   document.getElementById('security-profile-name').textContent=fullName;
+   document.getElementById('security-profile-email').textContent=preview.email||user.email||'';
+   document.getElementById('security-avatar').textContent=initials;
+   const safeText=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+   const accountRows=(previewData.accounts||[]).map(a=>'<div class="security-account"><span>'+safeText((a.account_type||'Bank').replaceAll('_',' '))+' · •••• '+safeText(String(a.account_number||'').slice(-4))+'</span><b class="security-status">'+safeText(String(a.account_status||'').toUpperCase())+'</b></div>').join('');
+   document.getElementById('security-account-list').innerHTML=accountRows||'<div class="security-account"><span>Bank account</span><b>Contact support</b></div>';
+   if(!status.configured){
+    gateMessage.textContent='Your login security PIN has not been activated yet. Please contact bank support to have it set up.';
+    gateMessage.classList.add('show');
+    document.getElementById('security-help').textContent='For your protection, account access stays locked until your login security PIN is activated.';
+    document.querySelectorAll('[data-security-digit],[data-security-clear],[data-security-backspace]').forEach(b=>b.disabled=true);
+   }else if(status.locked){
+    gateMessage.textContent='PIN verification is temporarily locked after too many incorrect attempts. Please try again after the 15-minute security lock.';
+    gateMessage.classList.add('show');
+    document.querySelectorAll('[data-security-digit],[data-security-clear],[data-security-backspace]').forEach(b=>b.disabled=true);
+    pinSubmit.disabled=true;
+   }
+   document.getElementById('security-signout').addEventListener('click',async()=>{
+    const signoutButton=document.getElementById('security-signout');signoutButton.disabled=true;signoutButton.textContent='Signing out…';
+    try{await sb.auth.signOut();}finally{location.replace('sign-in.html');}
    });
-  });
+   const updateDots=()=>{pinDots.forEach((dot,i)=>dot.classList.toggle('filled',i<pinInput.value.length));pinSubmit.disabled=pinInput.value.length!==6||!status.configured||!!status.locked;};
+   document.querySelectorAll('[data-security-digit]').forEach(b=>b.addEventListener('click',()=>{if(pinInput.value.length<6){pinInput.value+=b.dataset.securityDigit;updateDots();}}));
+   document.querySelector('[data-security-clear]').addEventListener('click',()=>{pinInput.value='';updateDots();});
+   document.querySelector('[data-security-backspace]').addEventListener('click',()=>{pinInput.value=pinInput.value.slice(0,-1);updateDots();});
+   await new Promise(resolve=>{
+    pinForm.addEventListener('submit',async ev=>{
+     ev.preventDefault();if(pinSubmit.disabled)return;
+     pinSubmit.disabled=true;pinSubmit.textContent='Verifying…';gateMessage.classList.remove('show');
+     try{
+      const {data,error}=await sb.rpc('verify_login_security_pin',{p_pin:pinInput.value});
+      if(error)throw error;
+      if(data?.ok){
+       gate.hidden=true;document.body.classList.remove('security-gate-open');resolve();
+       return;
+      }
+      gateMessage.textContent=data?.message||'Unable to verify your security PIN.';
+      gateMessage.classList.add('show');
+      if(data?.locked||data?.setup_required){
+       status.locked=!!data?.locked;
+       document.querySelectorAll('[data-security-digit],[data-security-clear],[data-security-backspace]').forEach(b=>b.disabled=true);
+      }
+      pinInput.value='';updateDots();
+     }catch(pinError){gateMessage.textContent=pinError.message||'PIN verification failed. Please try again.';gateMessage.classList.add('show');pinInput.value='';updateDots();}
+     pinSubmit.textContent='Verify and continue';
+    });
+   });
+  }
  }catch(gateError){
   const gateMessage=document.getElementById('security-message');
   gateMessage.textContent='We could not load your security check. Please refresh or contact support. '+(gateError.message||'');
