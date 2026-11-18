@@ -180,9 +180,62 @@ async function adjustSelectedBalance(direction){
  finally{button.disabled=false;button.textContent=direction==='add'?'＋ Add money':'− Remove money';}
 }
 el('add-money').addEventListener('click',()=>adjustSelectedBalance('add'));
- el('clear-account-transactions').addEventListener('click',async()=>{if(!selected)return;const accountNumber=selected.account_number||selected.id;const confirmed=window.confirm('Permanently clear ALL transaction history linked to account '+accountNumber+'? This cannot be undone. The account balance will remain unchanged.');if(!confirmed)return;const button=el('clear-account-transactions');button.disabled=true;button.textContent='Clearing…';try{const {data,error}=await sb.from('bank_transactions').delete().or('from_account_id.eq.'+selected.id+',to_account_id.eq.'+selected.id).select('id');if(error)throw error;const count=(data||[]).length;el('edit-message').textContent='Cleared '+count+' transaction record'+(count===1?'':'s')+' for this account. The balance was not changed.';el('edit-message').classList.add('show');await loadAdminTransactions();}catch(err){el('edit-message').textContent=err.message||'Could not clear this account history.';el('edit-message').classList.add('show');}finally{button.disabled=false;button.textContent='Clear all transactions for this account';}});
+ el('clear-account-transactions').addEventListener('click',async()=>{
+  if(!selected)return;
+  const accountNumber=selected.account_number||selected.id;
+  const confirmed=window.confirm('Permanently clear ALL transaction history linked to account '+accountNumber+'? This cannot be undone. The account balance will remain unchanged.');
+  if(!confirmed)return;
+  const button=el('clear-account-transactions');
+  button.disabled=true;button.textContent='Clearing…';
+  el('edit-message').classList.remove('show');
+  try{
+   const {data,error}=await sb.rpc('manager_clear_account_transactions',{p_account_id:selected.id});
+   if(error)throw error;
+   const count=Number(data||0);
+   el('edit-message').textContent='Successfully cleared '+count+' transaction record'+(count===1?'':'s')+' for this account. The balance was not changed.';
+   el('edit-message').classList.add('show');
+   try{await loadAdminTransactions();}catch(refreshError){console.warn('Transaction list refresh failed after clear:',refreshError);}
+  }catch(err){
+   el('edit-message').textContent=err.message||'Could not clear this account history.';
+   el('edit-message').classList.add('show');
+  }finally{
+   button.disabled=false;button.textContent='Clear all transactions for this account';
+  }
+ });
 el('remove-money').addEventListener('click',()=>adjustSelectedBalance('remove'));
-el('edit-form').addEventListener('submit',async e=>{e.preventDefault();if(!selected)return;const balance=Number(el('balance').value),accountNumber=el('account-number').value.trim(),status=el('status').value;if(!/^[0-9]{9,12}$/.test(accountNumber)){el('edit-message').textContent='Enter an account number containing 9 to 12 digits.';el('edit-message').classList.add('show');return;}if(!Number.isFinite(balance)||balance<0){el('edit-message').textContent='Enter a valid non-negative balance.';el('edit-message').classList.add('show');return;}el('save').disabled=true;el('save').textContent='Saving…';try{const {data,error}=await sb.from('bank_accounts').update({available_balance:balance,account_number:accountNumber,transfers_blocked:el('transfers-blocked').checked,transfer_block_message:el('block-message').value.trim()||'Please contact support before making a transfer.'}).eq('id',selected.id).select('id');if(error)throw error;if(!data||!data.length)throw new Error('No account was updated. Check your manager permissions.');const statusRows=el('status-scope').value==='both'?await sb.from('bank_accounts').update({account_status:status}).eq('user_id',selected.user_id).in('account_type',['checking','savings']).select('id'):await sb.from('bank_accounts').update({account_status:status}).eq('id',selected.id).select('id');if(statusRows.error)throw statusRows.error;const profileUpdate=await sb.rpc('manager_update_customer_profile_full',{p_user_id:selected.user_id,p_first_name:el('admin-first-name').value.trim(),p_middle_name:el('admin-middle-name').value.trim(),p_last_name:el('admin-last-name').value.trim(),p_phone:el('admin-phone').value.trim(),p_country_of_residence:el('admin-country').value.trim(),p_address_line_1:el('admin-address-1').value.trim(),p_address_line_2:el('admin-address-2').value.trim(),p_city:el('admin-city').value.trim(),p_state_region:el('admin-state').value.trim(),p_postal_code:el('admin-postal').value.trim()});if(profileUpdate.error)throw profileUpdate.error;const pin=el('transaction-pin').value.trim();if(pin){const pinResult=await sb.rpc('manager_set_account_transaction_pin',{p_account_id:selected.id,p_pin:pin});if(pinResult.error)throw pinResult.error;}closeEditor();await load();}catch(err){el('edit-message').textContent=err.message||'Could not update this account.';el('edit-message').classList.add('show');}finally{el('save').disabled=false;el('save').textContent='Save account changes';}});
+el('edit-form').addEventListener('submit',async e=>{
+ e.preventDefault();if(!selected)return;
+ const balance=Number(el('balance').value),accountNumber=el('account-number').value.trim(),status=el('status').value;
+ if(!/^[0-9]{9,12}$/.test(accountNumber)){el('edit-message').textContent='Enter an account number containing 9 to 12 digits.';el('edit-message').classList.add('show');return;}
+ if(!Number.isFinite(balance)||balance<0){el('edit-message').textContent='Enter a valid non-negative balance.';el('edit-message').classList.add('show');return;}
+ const btn=el('save');btn.disabled=true;btn.textContent='Saving…';el('edit-message').classList.remove('show');
+ try{
+  const savePromise=sb.rpc('manager_save_account_changes',{
+   p_account_id:selected.id,p_user_id:selected.user_id,p_balance:balance,p_account_number:accountNumber,
+   p_status:status,p_status_scope:el('status-scope').value,p_transfers_blocked:el('transfers-blocked').checked,
+   p_transfer_block_message:el('block-message').value.trim(),
+   p_first_name:el('admin-first-name').value.trim(),p_middle_name:el('admin-middle-name').value.trim(),
+   p_last_name:el('admin-last-name').value.trim(),p_phone:el('admin-phone').value.trim(),
+   p_country_of_residence:el('admin-country').value.trim(),p_address_line_1:el('admin-address-1').value.trim(),
+   p_address_line_2:el('admin-address-2').value.trim(),p_city:el('admin-city').value.trim(),
+   p_state_region:el('admin-state').value.trim(),p_postal_code:el('admin-postal').value.trim()
+  });
+  const result=await Promise.race([savePromise,new Promise((_,reject)=>setTimeout(()=>reject(new Error('The save request timed out. Please check your connection and try again.')),20000))]);
+  if(result.error)throw result.error;
+  const pin=el('transaction-pin').value.trim();
+  if(pin){
+   const pinResult=await Promise.race([sb.rpc('manager_set_account_transaction_pin',{p_account_id:selected.id,p_pin:pin}),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Account details saved, but setting the transaction PIN timed out. Reopen the account and retry the PIN.')),20000))]);
+   if(pinResult.error)throw new Error('Account details saved, but the transaction PIN could not be updated: '+pinResult.error.message);
+  }
+  closeEditor();
+  await load();
+ }catch(err){
+  el('edit-message').textContent=err.message||'Could not update this account.';
+  el('edit-message').classList.add('show');
+ }finally{
+  btn.disabled=false;btn.textContent='Save account changes';
+ }
+});
 el('close').addEventListener('click',closeEditor);el('cancel').addEventListener('click',closeEditor);el('modal').addEventListener('click',e=>{if(e.target===el('modal'))closeEditor();});function fillGeneratorAccounts(){const select=el('gen-account');if(select)select.innerHTML=accounts.map(a=>{const p=customers.find(x=>x.id===a.user_id)||{};const name=[p.first_name,p.last_name].filter(Boolean).join(' ')||'Customer';const owner=p.email?' · '+p.email:'';return '<option value="'+esc(a.id)+'">'+esc(name+owner+' · '+a.account_type+' · '+a.account_number+' · '+money(a.available_balance))+'</option>';}).join('');const cards=el('card-account');if(cards)cards.innerHTML=accounts.map(a=>{const p=customers.find(x=>x.id===a.user_id)||{};const name=[p.first_name,p.last_name].filter(Boolean).join(' ')||p.email||'Customer';return '<option value="'+esc(a.id)+'">'+esc(name+' · '+a.account_number)+'</option>';}).join('');}
 function randomBetween(min,max){return Math.round((min+Math.random()*(max-min))*100)/100;}
 el('generator-form').addEventListener('submit',async e=>{e.preventDefault();const accountId=el('gen-account').value,count=Number(el('gen-count').value),min=Number(el('gen-min').value),max=Number(el('gen-max').value),start=el('gen-start').value,end=el('gen-end').value,mode=el('gen-mode').value,msg=el('gen-message'),btn=el('gen-submit');const account=accounts.find(a=>a.id===accountId);if(!account){msg.textContent='Choose a customer account.';msg.style.display='block';return;}if(!Number.isInteger(count)||count<1||count>200||min<=0||max<min||!start||!end||start>end){msg.textContent='Check the count, amount range and date range. The maximum is 200 records.';msg.style.display='block';return;}const from=new Date(start+'T00:00:00Z').getTime(),to=new Date(end+'T23:59:59Z').getTime();const labels=['Card purchase test','Online purchase test','Utility payment test','Retail purchase test','Subscription payment test','Payroll test credit','Refund test credit','Deposit test credit','Service payment test','Grocery purchase test','Transport payment test','Transfer test credit'];const transactions=Array.from({length:count},()=>{const type=mode==='mixed'?(Math.random()<.5?'debit':'credit'):mode;const when=new Date(from+Math.random()*(to-from));return {type,amount:randomBetween(min,max),created_at:when.toISOString(),description:labels[Math.floor(Math.random()*labels.length)]};});btn.disabled=true;btn.textContent='Generating…';msg.style.display='block';msg.textContent='Creating '+count+' clearly identified test history records. Account balance will not change…';try{const {data,error}=await sb.functions.invoke('manager-generate-test-transactions',{body:{account_id:accountId,transactions}});if(error)throw error;const result=data?.result||{};msg.textContent='Created '+result.count+' history entries for '+(customers.find(p=>p.id===account.user_id)?.email||'the selected customer')+' · account '+account.account_number+'. The account balance was not changed.';await load();fillGeneratorAccounts();}catch(err){let detail=err.message||'Could not generate test records.';try{if(err.context&&typeof err.context.json==='function'){const payload=await err.context.json();detail=payload.error||payload.message||detail;}}catch(_){}msg.textContent=detail;}finally{btn.disabled=false;btn.textContent='Generate test history';}});
