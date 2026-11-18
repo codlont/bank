@@ -174,41 +174,5 @@ footer{background:#0b1f45;color:#dce8ff}
 })();
 </script>
 
-<!-- Smartsupp live chat: single fixed launcher (not draggable) -->
-<script>
-var _smartsupp=window._smartsupp||{};
-_smartsupp.key='513db062fbcd7c63ecd3e5b04f60443504ca2f02';
-_smartsupp.hideWidget=true;
-_smartsupp.hideMobileWidget=true;
-window._smartsupp=_smartsupp;
-window.smartsupp||(function(d){
-  var s,c,o=window.smartsupp=function(){o._.push(arguments)};
-  o._=[];s=d.getElementsByTagName('script')[0];c=d.createElement('script');
-  c.type='text/javascript';c.charset='utf-8';c.async=true;
-  c.src='https://www.smartsuppchat.com/loader.js?';
-  s.parentNode.insertBefore(c,s);
-})(document);
-</script>
-<noscript>Powered by <a href="https://www.smartsupp.com" target="_blank" rel="noopener noreferrer">Smartsupp</a></noscript>
-<style>
-#fixedSmartsuppLauncher{position:fixed!important;right:16px!important;bottom:calc(22px + env(safe-area-inset-bottom,0px))!important;z-index:2147483000!important;width:58px!important;height:58px!important;border:0!important;border-radius:50%!important;padding:14px!important;display:grid!important;place-items:center!important;background:linear-gradient(145deg,#287cff,#0757e8)!important;color:#fff!important;box-shadow:0 8px 24px rgba(7,87,232,.34)!important;cursor:pointer!important;touch-action:manipulation!important}
-#fixedSmartsuppLauncher svg{width:100%;height:100%;display:block}
-body.has-mobile-more #fixedSmartsuppLauncher{bottom:calc(88px + env(safe-area-inset-bottom,0px))!important}
-</style>
-<script id="single-fixed-smartsupp-launcher">
-(function(){
- if(document.getElementById("fixedSmartsuppLauncher"))return;
- const button=document.createElement("button");
- button.type="button";button.id="fixedSmartsuppLauncher";
- button.setAttribute("aria-label","Open live chat");button.title="Live chat";
- button.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A3.5 3.5 0 0 1 7.5 2h9A3.5 3.5 0 0 1 20 5.5v7a3.5 3.5 0 0 1-3.5 3.5H10l-5.5 4v-4.7A3.5 3.5 0 0 1 4 12.5z" fill="currentColor"/></svg>';
- document.body.appendChild(button);
- if(document.querySelector(".mobile-nav,.mobile-bottom-nav,[data-mobile-nav]"))document.body.classList.add("has-mobile-more");
- button.addEventListener("click",function(){
-  if(typeof window.smartsupp==="function"){window.smartsupp("chat:show");window.smartsupp("chat:open");}
-  else{button.title="Chat is loading. Please try again.";}
- });
-})();
-</script>
 </body></html>
 <!-- Redeploy trigger: transaction manager tools and fixed chat placement -->
