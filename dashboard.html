@@ -582,7 +582,7 @@ let currentAuthUser=null;
    const accountRows=(previewData.accounts||[]).map(a=>'<div class="security-account"><span>'+safeText((a.account_type||'Bank').replaceAll('_',' '))+' · •••• '+safeText(String(a.account_number||'').slice(-4))+'</span><b class="security-status">'+safeText(String(a.account_status||'').toUpperCase())+'</b></div>').join('');
    document.getElementById('security-account-list').innerHTML=accountRows||'<div class="security-account"><span>Bank account</span><b>Contact support</b></div>';
    if(!status.configured){
-    gateMessage.textContent='Your login security PIN has not been activated yet. Please contact bank support to have it set up.';
+    gateMessage.textContent='A login security PIN has not been set for this profile yet. A manager must set the 6-digit PIN in the customer's account settings before access can continue.';
     gateMessage.classList.add('show');
     document.getElementById('security-help').textContent='For your protection, account access stays locked until your login security PIN is activated.';
    }else if(status.locked){
