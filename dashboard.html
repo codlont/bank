@@ -1181,7 +1181,7 @@ document.getElementById("subPanel").addEventListener("submit",async e=>{
  if(!Number.isFinite(amount)||amount<=0||Math.round(amount*100)!==amount*100){toast("Enter a valid amount with up to two decimal places.");return;}if(fromAccount===toAccount){toast("Choose a different recipient account.");return;}
  const source=customerAccounts.find(x=>x.account_number===fromAccount);if(!source||source.account_status!=="active"){toast("Choose an active account to transfer from.");return;}if(amount>Number(source.available_balance||0)){toast("Your available balance is not sufficient.");return;}
  const {data:recipient,error}=await sb.from("demo_recipients").select("recipient_name,account_number,bank_name,bank_type,account_type,currency_code,country,routing_code,status").eq("account_number",toAccount).eq("status","active").maybeSingle();
- if(error){toast("Recipient details could not be verified. Try again.");return;}if(!recipient){toast("No active demo recipient found for that account number.");return;}
+ if(error){toast("Recipient details could not be verified. Try again.");return;}if(!recipient){toast("No Recipient found for that account number.");return;}
  const registeredType=["Domestic","International"].includes(recipient.bank_type)?recipient.bank_type:(/^\d{9}$/.test(String(recipient.routing_code||""))?"Domestic":"International");
  if(transferType!==registeredType){toast("Transfer type does not match the manager's registered information.");return;}
  const norm=v=>String(v||"").trim().toLowerCase(),checks=[["recipient_name","Recipient name"],["bank_name","Bank name"],["account_type","Account type"],["routing_code","Bank identifier"]],mismatch=checks.find(([key])=>norm(entered[key])!==norm(recipient[key]));
