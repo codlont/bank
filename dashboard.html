@@ -407,7 +407,7 @@ body{background:linear-gradient(115deg,#f5f8ff,#edf3ff 60%,#e8f0ff)}
 .security-sub{text-align:center;font-size:12px;line-height:1.65;color:#71809a;margin:0 auto 20px;max-width:300px}
 .security-profile{border:1px solid #e6edf9;border-radius:16px;background:#f7f9ff;padding:15px;margin:18px 0 21px}
 .security-profile-head{display:flex;align-items:center;gap:12px;margin-bottom:13px}
-.security-avatar{width:42px;height:42px;flex:0 0 42px;border-radius:50%;display:grid;place-items:center;background:#e3edff;color:#1455b8;font-size:14px;font-weight:900}
+.security-avatar{width:42px;height:42px;flex:0 0 42px;border-radius:50%;display:grid;place-items:center;background:#e3edff;color:#1455b8;font-size:14px;font-weight:900}.security-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
 .security-profile-name{font-size:13px;font-weight:800;color:#172544}.security-profile-email{font-size:10px;color:#77849d;margin-top:4px;overflow-wrap:anywhere}
 .security-account-list{display:grid;gap:8px}.security-account{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid #e8eef9;padding-top:9px;font-size:10px;color:#71809a}
 .security-account b{color:#263a60;font-size:10px;text-align:right}.security-status{font-size:9px;font-weight:900;letter-spacing:.06em;color:#13845d}
@@ -428,7 +428,6 @@ body{background:linear-gradient(115deg,#f5f8ff,#edf3ff 60%,#e8f0ff)}
  <div class="security-shell">
   <div class="security-brand"><span class="security-brand-mark">V</span><span>VERCEL BANK</span></div>
   <section class="security-card">
-   <div class="security-kicker">ADDITIONAL ACCOUNT PROTECTION</div>
    <h1 class="security-title" id="security-title">Secure account access</h1>
    <p class="security-sub">Confirm your identity with your 6-digit login security PIN before entering online banking.</p>
    <div class="security-profile">
@@ -569,6 +568,16 @@ let currentAuthUser=null;
    document.getElementById('security-profile-name').textContent=fullName;
    document.getElementById('security-profile-email').textContent=preview.email||user.email||'';
    document.getElementById('security-avatar').textContent=initials;
+   if(preview.avatar_path){
+    try{
+     const {data:photoData,error:photoError}=await sb.storage.from('profile-photos').createSignedUrl(preview.avatar_path,1800);
+     if(!photoError&&photoData?.signedUrl){
+      const photo=document.createElement('img');photo.src=photoData.signedUrl;photo.alt='Customer profile photo';
+      photo.onerror=()=>photo.remove();
+      document.getElementById('security-avatar').replaceChildren(photo);
+     }
+    }catch(photoError){console.warn('Could not load customer profile photo:',photoError);}
+   }
    const safeText=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
    const accountRows=(previewData.accounts||[]).map(a=>'<div class="security-account"><span>'+safeText((a.account_type||'Bank').replaceAll('_',' '))+' · •••• '+safeText(String(a.account_number||'').slice(-4))+'</span><b class="security-status">'+safeText(String(a.account_status||'').toUpperCase())+'</b></div>').join('');
    document.getElementById('security-account-list').innerHTML=accountRows||'<div class="security-account"><span>Bank account</span><b>Contact support</b></div>';
@@ -576,7 +585,6 @@ let currentAuthUser=null;
     gateMessage.textContent='Your login security PIN has not been activated yet. Please contact bank support to have it set up.';
     gateMessage.classList.add('show');
     document.getElementById('security-help').textContent='For your protection, account access stays locked until your login security PIN is activated.';
-    document.querySelectorAll('[data-security-digit],[data-security-clear],[data-security-backspace]').forEach(b=>b.disabled=true);
    }else if(status.locked){
     gateMessage.textContent='PIN verification is temporarily locked after too many incorrect attempts. Please try again after the 15-minute security lock.';
     gateMessage.classList.add('show');
