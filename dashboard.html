@@ -581,10 +581,24 @@ let currentUserId=null;
 let currentUserEmail="";
 let customerProfile={};
 let currentAuthUser=null;
+function getBankSessionId(accessToken){
+ try{const payload=JSON.parse(atob(accessToken.split(".")[1].replace(/-/g,"+").replace(/_/g,"/")));return payload.session_id||"";}catch(e){return "";}
+}
+function bankVerifiedSessionKey(userId){return "bankPinVerifiedSession:"+userId;}
 (async()=>{
+ const {data:{session:initialSession}}=await sb.auth.getSession();
  const {data:{user},error}=await sb.auth.getUser();
  if(error||!user){location.replace("sign-in.html");return}
  currentAuthUser=user;
+ const activeSessionId=getBankSessionId(initialSession?.access_token||"");
+ const verifiedSessionKey=bankVerifiedSessionKey(user.id);
+ let cachedSessionMatch=false;
+ try{cachedSessionMatch=!!activeSessionId&&localStorage.getItem(verifiedSessionKey)===activeSessionId;}catch(cacheError){}
+ if(cachedSessionMatch){
+  document.getElementById("login-security-gate").hidden=true;
+  document.getElementById("customer-dashboard-shell").hidden=false;
+  document.body.classList.remove("security-pending","security-gate-open");
+ }
  try{
   const gate=document.getElementById('login-security-gate');
   const gateMessage=document.getElementById('security-message');
@@ -594,14 +608,17 @@ let currentAuthUser=null;
   const pinForm=document.getElementById('security-pin-form');
   document.getElementById('security-signout').addEventListener('click',async()=>{
    const signoutButton=document.getElementById('security-signout');signoutButton.disabled=true;signoutButton.textContent='Signing out…';
-   try{await sb.auth.signOut();}finally{location.replace('sign-in.html');}
+   try{localStorage.removeItem(verifiedSessionKey);}catch(cacheError){}try{await sb.auth.signOut();}finally{location.replace('sign-in.html');}
   });
   const pinStatus=await sb.rpc('login_security_pin_status');
   if(pinStatus.error)throw pinStatus.error;
   const status=pinStatus.data||{};
   if(status.verified){
+   try{if(activeSessionId)localStorage.setItem(verifiedSessionKey,activeSessionId);}catch(cacheError){}
    gate.hidden=true;document.getElementById('customer-dashboard-shell').hidden=false;document.body.classList.remove('security-gate-open','security-pending');
   }else{
+   try{localStorage.removeItem(verifiedSessionKey);}catch(cacheError){}
+   document.getElementById('customer-dashboard-shell').hidden=true;
    gate.hidden=false;document.body.classList.add("security-gate-open");
    const previewResult=await sb.rpc('login_security_pin_preview');
    if(previewResult.error)throw previewResult.error;
@@ -663,7 +680,7 @@ let currentAuthUser=null;
    });
   }
  }catch(gateError){
-  const gate=document.getElementById("login-security-gate");gate.hidden=false;document.body.classList.add("security-gate-open");
+  const gate=document.getElementById("login-security-gate");try{localStorage.removeItem(verifiedSessionKey);}catch(cacheError){}document.getElementById("customer-dashboard-shell").hidden=true;gate.hidden=false;document.body.classList.add("security-gate-open");
   const gateMessage=document.getElementById('security-message');
   gateMessage.textContent='We could not load your security check. Please refresh or contact support. '+(gateError.message||'');
   gateMessage.classList.add('show');
