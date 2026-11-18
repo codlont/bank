@@ -570,11 +570,11 @@ async function renderMyTransfers(){
   <div class="transfer-intro"><div><span class="transfer-page-kicker">BANK TRANSFERS</span><h3>Send money</h3></div><span class="transfer-secure">◆ Secure transfer</span></div>
   <form class="transfer-form" id="transferForm">
    <label>From account<select name="fromAccount" required ${activeAccounts.length?"":"disabled"}>${options}</select><span class="transfer-field-hint">Select the account you want to send money from.</span></label>
-   <label>Recipient account number<input name="toAccount" id="demoRecipientAccount" inputmode="numeric" autocomplete="off" maxlength="12" pattern="[0-9]{12}" placeholder="Enter 12-digit demo account number" required><span class="transfer-field-hint">Enter the account number created by the manager.</span></label>
+   <label>Recipient account number<input name="toAccount" id="demoRecipientAccount" inputmode="numeric" autocomplete="off" maxlength="12" minlength="9" pattern="[0-9]{9,12}" placeholder="Enter account number" required><span class="transfer-field-hint">Enter the account number created by the manager.</span></label>
    <div class="recipient-details visible" id="demoRecipientDetails">
     <div class="recipient-details-title">Recipient bank information</div>
-    <label class="recipient-detail-wide">Recipient full name<input name="recipientName" id="demoRecipientName" required placeholder="Full name as registered"></label>
-    <div class="recipient-detail-wide"><label for="demoRecipientBank">Bank name</label><div class="bank-picker"><select name="recipientBank" id="demoRecipientBank" required><option value="Vercel Bank">Vercel Bank</option></select><button type="button" class="bank-search-trigger" data-bank-search="demoRecipientBank" aria-label="Search US banks" title="Search US banks">⌕</button></div></div>
+    <label class="recipient-detail-wide">Recipient full name<input name="recipientName" id="demoRecipientName" required placeholder="Full name"></label>
+    <div class="recipient-detail-wide"><label for="demoRecipientBank">Bank name</label><div class="bank-picker" data-bank-search="demoRecipientBank"><select name="recipientBank" id="demoRecipientBank" required><option value="">Select a bank</option></select><button type="button" class="bank-search-trigger" data-bank-search="demoRecipientBank" aria-label="Search US banks" title="Search US banks">⌕</button></div></div>
     <label>Transfer type<select name="transferType" id="demoTransferType" required><option value="Domestic">Domestic</option><option value="International">International</option></select></label>
     <label>Account type<select name="recipientAccountType" id="demoRecipientAccountType" required><option value="">Select account type</option><option>Checking</option><option>Savings</option><option>Current</option><option>Business</option></select></label>
     <label class="recipient-detail-wide"><span id="demoRecipientIdentifierLabel">US routing number</span><input name="recipientRouting" id="demoRecipientRouting" inputmode="numeric" maxlength="9" pattern="[0-9]{9}" required placeholder="Enter 9-digit routing number"></label>
@@ -890,7 +890,7 @@ document.getElementById("subPanel").addEventListener("submit",async e=>{
  const data=new FormData(e.target),fromAccount=String(data.get("fromAccount")||""),toAccount=String(data.get("toAccount")||"").trim(),amount=Number(data.get("amount")),description=String(data.get("description")||"").trim(),transferType=String(data.get("transferType")||"Domestic");
  const entered={recipient_name:String(data.get("recipientName")||"").trim(),bank_name:String(data.get("recipientBank")||"").trim(),account_type:String(data.get("recipientAccountType")||"").trim(),routing_code:String(data.get("recipientRouting")||"").trim()};
  const validIdentifier=transferType==="International"?/^[A-Za-z0-9]{8}(?:[A-Za-z0-9]{3})?$/.test(entered.routing_code):/^\d{9}$/.test(entered.routing_code);
- if(!/^\d{12}$/.test(toAccount)){toast("Enter a valid 12-digit demo account number.");return;}if(!validIdentifier){toast(transferType==="International"?"Enter the 8 or 11-character SWIFT/BIC code registered by the manager.":"Enter the 9-digit US routing number registered by the manager.");return;}if(!entered.recipient_name||!entered.bank_name||!entered.account_type){toast("Complete all recipient bank details.");return;}
+ if(!/^\d{9,12}$/.test(toAccount)){toast("Enter a valid account number (9–12 digits).");return;}if(!validIdentifier){toast(transferType==="International"?"Enter the 8 or 11-character SWIFT/BIC code registered by the manager.":"Enter the 9-digit US routing number registered by the manager.");return;}if(!entered.recipient_name||!entered.bank_name||!entered.account_type){toast("Complete all recipient bank details.");return;}
  if(!Number.isFinite(amount)||amount<=0||Math.round(amount*100)!==amount*100){toast("Enter a valid amount with up to two decimal places.");return;}if(fromAccount===toAccount){toast("Choose a different recipient account.");return;}
  const source=customerAccounts.find(x=>x.account_number===fromAccount);if(!source||source.account_status!=="active"){toast("Choose an active account to transfer from.");return;}if(amount>Number(source.available_balance||0)){toast("Your available balance is not sufficient.");return;}
  const {data:recipient,error}=await sb.from("demo_recipients").select("recipient_name,account_number,bank_name,bank_type,account_type,currency_code,country,routing_code,status").eq("account_number",toAccount).eq("status","active").maybeSingle();
@@ -965,7 +965,7 @@ document.querySelectorAll(".quick").forEach(b=>b.addEventListener("click",()=>{c
 </script>
 
 <style id="us-bank-search-style">
-.bank-picker{display:flex;align-items:stretch;gap:7px;width:100%;margin-top:7px}.bank-picker select{flex:1;min-width:0;margin-top:0!important}.bank-search-trigger{width:48px;min-width:48px;border:1px solid #dbe4f3;border-radius:10px;background:#fff;color:#1455b8;font-size:26px;line-height:1;cursor:pointer}.bank-search-modal{position:fixed;inset:0;z-index:2147482500;background:#10182899;display:none;align-items:center;justify-content:center;padding:16px}.bank-search-modal.open{display:flex}.bank-search-panel{width:min(100%,480px);max-height:min(78dvh,680px);overflow:hidden;background:#fff;border-radius:16px;box-shadow:0 22px 70px #0003;display:flex;flex-direction:column}.bank-search-head{padding:17px 18px;border-bottom:1px solid #e9edf4;display:flex;align-items:center;justify-content:space-between;gap:12px}.bank-search-head strong{font-size:16px;font-weight:800;color:#172343}.bank-search-close{border:0;border-radius:50%;width:36px;height:36px;background:#f1f4f9;font-size:22px}.bank-search-input{margin:14px 16px 8px;width:calc(100% - 32px);height:48px;border:1px solid #dce4f0;border-radius:10px;padding:0 13px;font-size:16px!important;outline:none}.bank-search-results{overflow:auto;padding:0 12px 12px}.bank-search-result{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid #eff2f6;background:#fff;padding:13px 10px;font-size:14px;font-weight:650;color:#172343}.bank-search-status{padding:14px 18px;font-size:12px;color:#68758d}
+.bank-picker{display:flex;align-items:stretch;gap:7px;width:100%;margin-top:7px}.bank-picker select{flex:1;min-width:0;margin-top:0!important;pointer-events:none;cursor:pointer}.bank-search-trigger{width:48px;min-width:48px;border:1px solid #dbe4f3;border-radius:10px;background:#fff;color:#1455b8;font-size:26px;line-height:1;cursor:pointer}.bank-search-modal{position:fixed;inset:0;z-index:2147482500;background:#10182899;display:none;align-items:center;justify-content:center;padding:16px}.bank-search-modal.open{display:flex}.bank-search-panel{width:min(100%,480px);max-height:min(78dvh,680px);overflow:hidden;background:#fff;border-radius:16px;box-shadow:0 22px 70px #0003;display:flex;flex-direction:column}.bank-search-head{padding:17px 18px;border-bottom:1px solid #e9edf4;display:flex;align-items:center;justify-content:space-between;gap:12px}.bank-search-head strong{font-size:16px;font-weight:800;color:#172343}.bank-search-close{border:0;border-radius:50%;width:36px;height:36px;background:#f1f4f9;font-size:22px}.bank-search-input{margin:14px 16px 8px;width:calc(100% - 32px);height:48px;border:1px solid #dce4f0;border-radius:10px;padding:0 13px;font-size:16px!important;outline:none}.bank-search-results{overflow:auto;padding:0 12px 12px}.bank-search-result{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid #eff2f6;background:#fff;padding:13px 10px;font-size:14px;font-weight:650;color:#172343}.bank-search-status{padding:14px 18px;font-size:12px;color:#68758d}
 </style>
 <div class="bank-search-modal" id="usBankSearchModal" aria-hidden="true"><section class="bank-search-panel" role="dialog" aria-modal="true" aria-label="Search US banks"><header class="bank-search-head"><strong>Choose a US bank</strong><button type="button" class="bank-search-close" id="usBankSearchClose" aria-label="Close">×</button></header><input class="bank-search-input" id="usBankSearchInput" type="search" placeholder="Search bank name…" autocomplete="off"><div class="bank-search-status" id="usBankSearchStatus">Loading US banks…</div><div class="bank-search-results" id="usBankSearchResults"></div></section></div>
 <script id="us-bank-search-controller">
@@ -1025,11 +1025,27 @@ document.querySelectorAll(".quick").forEach(b=>b.addEventListener("click",()=>{c
   if(!Array.from(select.options).some(option=>option.value===name))select.add(new Option(name,name));
   select.value=name;select.dispatchEvent(new Event('change',{bubbles:true}));close();
  });
+ document.querySelectorAll('.bank-picker').forEach(picker=>picker.addEventListener('click',event=>{if(event.target.closest('.bank-search-trigger'))return;const select=picker.querySelector('select');if(select){event.preventDefault();const trigger=picker.querySelector('[data-bank-search]');if(trigger)trigger.click();}}));
  input.addEventListener('input',render);
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('open'))close();});
  load();
 })();
-</script></body></html>
+</script><!-- Smartsupp live chat: single fixed launcher (not draggable) -->
+<script>
+var _smartsupp=window._smartsupp||{};
+_smartsupp.key='513db062fbcd7c63ecd3e5b04f60443504ca2f02';
+_smartsupp.hideWidget=true;
+_smartsupp.hideMobileWidget=true;
+window._smartsupp=_smartsupp;
+window.smartsupp||(function(d){
+  var s,c,o=window.smartsupp=function(){o._.push(arguments)};
+  o._=[];s=d.getElementsByTagName('script')[0];c=d.createElement('script');
+  c.type='text/javascript';c.charset='utf-8';c.async=true;
+  c.src='https://www.smartsuppchat.com/loader.js?';
+  s.parentNode.insertBefore(c,s);
+})(document);
+</script>
+</body></html>
 <!-- Redeploy trigger: customer dashboard update -->
 <!-- Redeploy trigger: refresh deployment from latest bank selector and live chat fixes -->
 <!-- Redeploy retry: 2026-11-17T19:41:40.195Z -->
