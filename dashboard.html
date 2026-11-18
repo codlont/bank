@@ -731,7 +731,7 @@ function bankVerifiedSessionKey(userId){return "bankPinVerifiedSession:"+userId;
   try{storedSection=localStorage.getItem("bankDashboardSection")||"";}catch(storageError){}
   const savedSection=Object.prototype.hasOwnProperty.call(sections,hashSection)?hashSection:storedSection;
   if(savedSection && Object.prototype.hasOwnProperty.call(sections,savedSection)) showSection(savedSection);
-  if(savedSection==="overview"||!savedSection) renderOverviewActivity();
+  watchOverviewActivity();\n  if(savedSection==="overview"||!savedSection) renderOverviewActivity(true);
  }catch(err){
   console.error("Unable to load customer banking data:",err);
   toast("We couldn't load your account details. Please refresh.");
@@ -910,28 +910,63 @@ async function renderMyTransactions(){
  list.addEventListener("keydown",e=>{const item=e.target.closest("[data-transaction-index]");if(item&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openDetails(Number(item.dataset.transactionIndex));}});
  document.getElementById("transactionSearch").addEventListener("input",e=>{historyPage=0;render(e.target.value);});
 }
-async function renderOverviewActivity(){
- const box=document.getElementById("overviewActivity");if(!box||!currentUserId)return;
- const {data:loadedRows,error}=await sb.from("bank_transactions").select("reference,sender_user_id,recipient_user_id,amount,currency_code,description,status,created_at,transaction_type,is_synthetic").or("sender_user_id.eq."+currentUserId+",recipient_user_id.eq."+currentUserId).order("created_at",{ascending:false}).limit(50);
- if(error){box.innerHTML='<div class="empty"><strong>Activity unavailable</strong><p>We could not load your recent transactions. Please try again later.</p></div>';return;}
- const rows=(loadedRows||[]).slice(0,3);
- if(!rows.length){box.innerHTML='<div class="empty"><div class="empty-icon">↗</div><strong>No activity yet</strong><p>When you send or receive a transfer, it will appear here.</p></div>';return;}
- box.innerHTML=rows.map(row=>{
-  const outgoing=row.transaction_type==="debit"||(row.transaction_type!=="credit"&&row.sender_user_id===currentUserId);
-  const money=new Intl.NumberFormat("en-US",{style:"currency",currency:row.currency_code||"USD"}).format(Number(row.amount||0));
-  const stamp=new Date(row.created_at);
-  const date=new Intl.DateTimeFormat("en-US",{month:"short",day:"numeric",year:"numeric"}).format(stamp);
-  const time=new Intl.DateTimeFormat("en-US",{hour:"2-digit",minute:"2-digit"}).format(stamp);
-  const description=String(row.description||"").replace(/^Demo transfer to\s*/i,"").replace(/\b(?:simulated\s+)?test\s+record\b/ig," ").replace(/\btest\b/ig," ").replace(/\s*[·|—-]\s*/g," ").replace(/\s{2,}/g," ").trim().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-  const isCard=/card/i.test(row.transaction_type||"")||/card payment/i.test(row.description||"");
-  const title=isCard?"Card Payment":(outgoing?"Money Sent":"Money Received");
-  const companyPayment=outgoing&&/online|merchant|bill payment|utility|subscription|service payment|retail purchase|grocery purchase|transport payment/i.test(row.description||"");
-   const subtitle=isCard?(description||"Card transaction"):(companyPayment?"Company: "+(description||"Company"):(outgoing?"To: ":"From: ")+(description||"Account transfer"));
-  const icon=isCard?"▣":(outgoing?"↑":"↓");
-  const kind=isCard?"card":(outgoing?"outgoing":"incoming");
-  return '<div class="overview-activity-row"><span class="overview-activity-icon '+kind+'">'+icon+'</span><div class="overview-activity-info"><strong>'+title+'</strong><small>'+subtitle+'</small></div><b class="'+(outgoing?"outgoing":"incoming")+'">'+(outgoing?"−":"+")+money+'<small class="activity-time">'+date+' · '+time+'</small></b></div>';
- }).join("");
+let overviewActivityRequest=null;
+let overviewActivityLastLoaded=0;
+let overviewActivityChannel=null;
+async function renderOverviewActivity(force=false){
+ const box=document.getElementById("overviewActivity");if(!box)return;
+ if(!currentUserId){box.innerHTML='<div class="empty"><strong>Preparing your activity…</strong><p>Your latest account transactions will appear here.</p></div>';return;}
+ if(overviewActivityRequest)return overviewActivityRequest;
+ if(!force&&overviewActivityLastLoaded&&Date.now()-overviewActivityLastLoaded<12000)return;
+ const userId=currentUserId;
+ box.setAttribute("aria-busy","true");
+ overviewActivityRequest=(async()=>{
+  let loadedRows=null,lastError=null;
+  for(let attempt=0;attempt<3;attempt++){
+   try{
+    const request=sb.from("bank_transactions").select("reference,sender_user_id,recipient_user_id,amount,currency_code,description,status,created_at,transaction_type,is_synthetic").or("sender_user_id.eq."+userId+",recipient_user_id.eq."+userId).order("created_at",{ascending:false}).limit(50);
+    const result=await Promise.race([request,new Promise((_,reject)=>setTimeout(()=>reject(new Error("Activity request timed out")),10000))]);
+    if(result.error)throw result.error;
+    loadedRows=result.data||[];break;
+   }catch(error){lastError=error;if(attempt<2)await new Promise(resolve=>setTimeout(resolve,700*(attempt+1)));}
+  }
+  try{
+   if(loadedRows===null)throw lastError||new Error("Unable to load recent activity");
+   if(currentUserId!==userId)return;
+   const rows=loadedRows.slice(0,3);
+   if(!rows.length){box.innerHTML='<div class="empty"><div class="empty-icon">↗</div><strong>No activity yet</strong><p>When you send or receive a transfer, it will appear here.</p></div>';}
+   else box.innerHTML=rows.map(row=>{
+    const outgoing=row.transaction_type==="debit"||(row.transaction_type!=="credit"&&row.sender_user_id===userId);
+    const money=new Intl.NumberFormat("en-US",{style:"currency",currency:row.currency_code||"USD"}).format(Number(row.amount||0));
+    const stamp=new Date(row.created_at);
+    const date=new Intl.DateTimeFormat("en-US",{month:"short",day:"numeric",year:"numeric"}).format(stamp);
+    const time=new Intl.DateTimeFormat("en-US",{hour:"2-digit",minute:"2-digit"}).format(stamp);
+    const description=String(row.description||"").replace(/^Demo transfer to\\s*/i,"").replace(/\\b(?:simulated\\s+)?test\\s+record\\b/ig," ").replace(/\\btest\\b/ig," ").replace(/\\s*[·|—-]\\s*/g," ").replace(/\\s{2,}/g," ").trim().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+    const isCard=/card/i.test(row.transaction_type||"")||/card payment/i.test(row.description||"");
+    const title=isCard?"Card Payment":(outgoing?"Money Sent":"Money Received");
+    const companyPayment=outgoing&&/online|merchant|bill payment|utility|subscription|service payment|retail purchase|grocery purchase|transport payment/i.test(row.description||"");
+    const subtitle=isCard?(description||"Card transaction"):(companyPayment?"Company: "+(description||"Company"):(outgoing?"To: ":"From: ")+(description||"Account transfer"));
+    const icon=isCard?"▣":(outgoing?"↑":"↓"),kind=isCard?"card":(outgoing?"outgoing":"incoming");
+    return '<div class="overview-activity-row"><span class="overview-activity-icon '+kind+'">'+icon+'</span><div class="overview-activity-info"><strong>'+title+'</strong><small>'+subtitle+'</small></div><b class="'+(outgoing?"outgoing":"incoming")+'">'+(outgoing?"−":"+")+money+'<small class="activity-time">'+date+' · '+time+'</small></b></div>';
+   }).join("");
+   overviewActivityLastLoaded=Date.now();
+  }catch(error){
+   console.error("Recent activity load failed:",error);
+   box.innerHTML='<div class="empty"><strong>Activity temporarily unavailable</strong><p>We could not connect to your recent transactions. We will try again automatically.</p><button type="button" id="retryOverviewActivity" class="activity-retry">Try again</button></div>';
+   const retry=document.getElementById("retryOverviewActivity");if(retry)retry.addEventListener("click",()=>renderOverviewActivity(true),{once:true});
+  }finally{box.removeAttribute("aria-busy");overviewActivityRequest=null;}
+ })();
+ return overviewActivityRequest;
 }
+function watchOverviewActivity(){
+ if(!currentUserId||overviewActivityChannel)return;
+ overviewActivityChannel=sb.channel("overview-activity-"+currentUserId)
+  .on("postgres_changes",{event:"*",schema:"public",table:"bank_transactions",filter:"sender_user_id=eq."+currentUserId},()=>renderOverviewActivity(true))
+  .on("postgres_changes",{event:"*",schema:"public",table:"bank_transactions",filter:"recipient_user_id=eq."+currentUserId},()=>renderOverviewActivity(true))
+  .subscribe();
+}
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&document.body.dataset.currentPage==="overview")renderOverviewActivity(true);});
+
 function renderMyProfile(){
  const panel=document.getElementById("subPanel");
  const esc=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -1043,7 +1078,7 @@ async function renderMoreServices(){
  panel.querySelectorAll("[data-more-copy]").forEach(b=>b.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(b.dataset.moreCopy);toast("Account number copied.");}catch(e){toast("Copy is unavailable on this browser.");}}));
 }
 try{window.__bankNavStack=JSON.parse(sessionStorage.getItem("bankNavStack")||'["overview"]');if(!Array.isArray(window.__bankNavStack))window.__bankNavStack=["overview"];}catch(navStorageError){window.__bankNavStack=["overview"];}
-function showSection(key,fromBack=false){if(!Object.prototype.hasOwnProperty.call(sections,key))key="overview";const previous=document.body.dataset.currentPage||"overview";if(!fromBack&&previous!==key){window.__bankNavStack.push(previous);if(window.__bankNavStack.length>30)window.__bankNavStack.shift();}try{sessionStorage.setItem("bankNavStack",JSON.stringify(window.__bankNavStack));}catch(navStorageError){}document.body.dataset.currentPage=key;const s=sections[key];try{if(key==="overview")localStorage.removeItem("bankDashboardSection");else localStorage.setItem("bankDashboardSection",key);}catch(storageError){}const nextUrl=key==="overview"?(location.pathname+location.search):(location.pathname+location.search+"#"+key);if(location.pathname+location.search+location.hash!==nextUrl)history.replaceState(null,"",nextUrl);document.querySelectorAll(".side-link").forEach(b=>b.classList.toggle("active",b.dataset.section===key));document.getElementById("overviewView").hidden=key!=="overview";document.getElementById("subView").hidden=key==="overview";document.getElementById("subTitle").textContent=s[0];document.getElementById("subView").dataset.section=key;const back=document.getElementById("bankBackButton");if(back)back.style.display=key==="overview"?"none":"grid";document.getElementById("sidebar").classList.remove("open");document.querySelectorAll(".mobile-nav-item").forEach(item=>item.classList.toggle("active",({overview:"overview",transactions:"transactions",cards:"cards",support:"support",profile:"profile"})[key]===item.dataset.goto));if(key==="accounts")renderMyAccounts();else if(key==="transfers")renderMyTransfers();else if(key==="transactions")renderMyTransactions();else if(key==="profile")renderMyProfile();else if(key==="more")renderMoreServices();else if(["payments","cards","addcard","statements","savedbanks","support"].includes(key))renderDedicatedPage(key);window.scrollTo({top:0,behavior:"instant"});}
+function showSection(key,fromBack=false){if(!Object.prototype.hasOwnProperty.call(sections,key))key="overview";const previous=document.body.dataset.currentPage||"overview";if(!fromBack&&previous!==key){window.__bankNavStack.push(previous);if(window.__bankNavStack.length>30)window.__bankNavStack.shift();}try{sessionStorage.setItem("bankNavStack",JSON.stringify(window.__bankNavStack));}catch(navStorageError){}document.body.dataset.currentPage=key;const s=sections[key];try{if(key==="overview")localStorage.removeItem("bankDashboardSection");else localStorage.setItem("bankDashboardSection",key);}catch(storageError){}const nextUrl=key==="overview"?(location.pathname+location.search):(location.pathname+location.search+"#"+key);if(location.pathname+location.search+location.hash!==nextUrl)history.replaceState(null,"",nextUrl);document.querySelectorAll(".side-link").forEach(b=>b.classList.toggle("active",b.dataset.section===key));document.getElementById("overviewView").hidden=key!=="overview";document.getElementById("subView").hidden=key==="overview";document.getElementById("subTitle").textContent=s[0];document.getElementById("subView").dataset.section=key;const back=document.getElementById("bankBackButton");if(back)back.style.display=key==="overview"?"none":"grid";document.getElementById("sidebar").classList.remove("open");document.querySelectorAll(".mobile-nav-item").forEach(item=>item.classList.toggle("active",({overview:"overview",transactions:"transactions",cards:"cards",support:"support",profile:"profile"})[key]===item.dataset.goto));if(key==="overview")renderOverviewActivity(true);else if(key==="accounts")renderMyAccounts();else if(key==="transfers")renderMyTransfers();else if(key==="transactions")renderMyTransactions();else if(key==="profile")renderMyProfile();else if(key==="more")renderMoreServices();else if(["payments","cards","addcard","statements","savedbanks","support"].includes(key))renderDedicatedPage(key);window.scrollTo({top:0,behavior:"instant"});}
 document.querySelectorAll(".side-link").forEach(b=>b.addEventListener("click",()=>showSection(b.dataset.section)));
 function goBankBack(){const current=document.body.dataset.currentPage||"overview";if(current==="overview"){toast("You are already on the main banking page.");return;}let target="overview";while(Array.isArray(window.__bankNavStack)&&window.__bankNavStack.length){const candidate=window.__bankNavStack.pop();if(candidate&&candidate!==current&&Object.prototype.hasOwnProperty.call(sections,candidate)){target=candidate;break;}}try{sessionStorage.setItem("bankNavStack",JSON.stringify(window.__bankNavStack||[]));}catch(navStorageError){}showSection(target,true);}
 document.getElementById("bankBackButton")?.addEventListener("click",goBankBack);
