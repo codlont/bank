@@ -545,7 +545,7 @@ body{background:linear-gradient(115deg,#f5f8ff,#edf3ff 60%,#e8f0ff)}
 <div class="toast" id="toast" role="status"></div>
 <script id="dashboard-section-first-paint">
 (function(){
- const map={overview:"Overview",accounts:"My accounts",transfers:"Transfers",transactions:"Transaction history",payments:"Payments & bills",cards:"Cards",statements:"Statements",profile:"Profile & settings",support:"Help & support"};
+ const map={overview:"Overview",accounts:"My accounts",transfers:"Transfers",transactions:"Transaction history",payments:"Payments & bills",cards:"Cards",statements:"Bank statement",savedbanks:"Add a bank",profile:"Profile & settings",support:"Help & support"};
  let key=location.hash.replace(/^#/,"");
  if(!Object.prototype.hasOwnProperty.call(map,key)){try{key=localStorage.getItem("bankDashboardSection")||"overview"}catch(e){key="overview"}}
  if(!Object.prototype.hasOwnProperty.call(map,key))key="overview";
@@ -815,7 +815,7 @@ async function renderMyTransactions(){
   const pageRows=filtered.slice(historyPage*25,(historyPage+1)*25);
   list.innerHTML=pageRows.map(row=>{
    const outgoing=row.transaction_type==="debit"||(row.transaction_type!=="credit"&&row.sender_user_id===currentUserId);
-   const kind=row.transaction_type==="debit"?"Transfer sent":row.transaction_type==="credit"?"Credit":(outgoing?"Transfer sent":"Transfer received");
+   const kind=/online payment/i.test(String(row.description||""))?"Online payment":row.transaction_type==="debit"?"Transfer sent":row.transaction_type==="credit"?"Credit":(outgoing?"Transfer sent":"Transfer received");
    const date=formatDate(row.created_at);
    const amount=new Intl.NumberFormat("en-US",{style:"currency",currency:row.currency_code||"USD"}).format(Number(row.amount||0));
    const status=escapeHtml(String(row.status||"completed").toUpperCase());
@@ -836,7 +836,7 @@ async function renderMyTransactions(){
   const description=cleanDescription(row.description);
   const originalDescription=String(row.description||"");
   const demoRecipient=originalDescription.match(/^Demo transfer to\s*(.*?)\s*[·|—-]\s*([0-9]{12})/i);
-  const isCompanyPayment=/online|merchant|bill payment|utility|subscription|service payment|retail purchase|grocery purchase|transport payment/i.test(originalDescription);
+  const isCompanyPayment=/online payment|merchant|bill payment|utility|subscription|service payment|retail purchase|grocery purchase|transport payment/i.test(originalDescription);
   const companyLabel=description.replace(/^Demo\s+/i,"").replace(/\s+(purchase|payment)$/i,"").trim()||"Company";
   const fields=[
    ["Transaction type",row.transaction_type|| (outgoing?"debit":"credit")],
@@ -963,7 +963,7 @@ async function renderDedicatedPage(key){
   panel.querySelector("#cardRequestForm").addEventListener("submit",async e=>{e.preventDefault();const f=e.currentTarget,v=new FormData(f),b=f.querySelector("button"),status=panel.querySelector("#cardRequestStatus");b.disabled=true;b.textContent="Submitting…";const {error}=await sb.rpc("customer_card_request_add",{p_card_network:String(v.get("network")),p_card_type:String(v.get("type")),p_cardholder_name:String(v.get("holder")).trim(),p_last_four:String(v.get("last4"))});status.textContent=error?error.message:"Your card request has been submitted.";if(!error){f.reset();await loadRequests();}b.disabled=false;b.textContent="Submit card request →";});
   return;
  }
- if(key==="support"{
+ if(key==="support"){
   panel.innerHTML='<section class="dedicated-page"><span class="eyebrow">CUSTOMER SUPPORT</span><h3>How can we help?</h3><p class="dedicated-lead">Send a short message to the support team. You can follow the status and replies below.</p><form id="supportMessageForm" class="transfer-form"><label>Subject<input name="subject" maxlength="100" required placeholder="What do you need help with?"></label><label>Message<textarea name="message" maxlength="1000" required placeholder="Briefly describe what is happening…"></textarea></label><button class="transfer-submit" type="submit">Send message</button></form><div id="supportMessageStatus" role="status"></div><h3 style="margin-top:28px">Your messages</h3><div id="mySupportMessages">Loading messages…</div></section>';
   const loadMessages=async()=>{const {data,error}=await sb.from("support_messages").select("id,subject,message,status,admin_reply,created_at").eq("user_id",currentUserId).order("created_at",{ascending:false}).limit(30);const box=document.getElementById("mySupportMessages");if(!box)return;box.innerHTML=error?'<div class="transfer-empty">Messages are unavailable: '+escValue(error.message)+'</div>':(data||[]).map(x=>'<article class="account-detail-card" style="padding:15px;margin:12px 0;border:1px solid var(--line);border-radius:12px"><div style="display:flex;justify-content:space-between;gap:10px"><b>'+escValue(x.subject)+'</b><small>'+escValue(x.status)+'</small></div><p>'+escValue(x.message)+'</p>'+(x.admin_reply?'<div style="padding:12px;background:#f1f5ff;border-radius:9px"><b>Support reply</b><p>'+escValue(x.admin_reply)+'</p></div>':'')+'<small>'+new Date(x.created_at).toLocaleString()+'</small></article>').join("")||'<div class="transfer-empty">You have not sent a support message yet.</div>';};
   await loadMessages();
