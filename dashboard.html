@@ -582,9 +582,9 @@ let currentAuthUser=null;
    const accountRows=(previewData.accounts||[]).map(a=>'<div class="security-account"><span>'+safeText((a.account_type||'Bank').replaceAll('_',' '))+' · •••• '+safeText(String(a.account_number||'').slice(-4))+'</span><b class="security-status">'+safeText(String(a.account_status||'').toUpperCase())+'</b></div>').join('');
    document.getElementById('security-account-list').innerHTML=accountRows||'<div class="security-account"><span>Bank account</span><b>Contact support</b></div>';
    if(!status.configured){
-    gateMessage.textContent='A login security PIN has not been set for this profile yet. A manager must set the 6-digit PIN in the account settings before access can continue.';
-    gateMessage.classList.add('show');
-    document.getElementById('security-help').textContent='For your protection, account access stays locked until your login security PIN is activated.';
+    gateMessage.textContent='';
+    gateMessage.classList.remove('show');
+    document.getElementById('security-help').textContent='';
    }else if(status.locked){
     gateMessage.textContent='PIN verification is temporarily locked after too many incorrect attempts. Please try again after the 15-minute security lock.';
     gateMessage.classList.add('show');
