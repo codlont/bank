@@ -837,7 +837,7 @@ async function renderMyTransactions(){
   const originalDescription=String(row.description||"");
   const demoRecipient=originalDescription.match(/^Demo transfer to\s*(.*?)\s*[·|—-]\s*([0-9]{12})/i);
   const isCompanyPayment=/online payment|merchant|bill payment|utility|subscription|service payment|retail purchase|grocery purchase|transport payment/i.test(originalDescription);
-  const companyLabel=(originalDescription.match(/^Online payment\\s*[·|—-]\\s*([^·|—-]+)/i)||[])[1]||description.replace(/^Demo\\s+/i,"").replace(/\\s+(purchase|payment)$/i,"").trim()||"Company";
+  const companyLabel=(originalDescription.match(/^Online payment\s*[·|—-]\s*([^·|—-]+)/i)||[])[1]||description.replace(/^Demo\s+/i,"").replace(/\s+(purchase|payment)$/i,"").trim()||"Company";
   const fields=[
    ["Transaction type",row.transaction_type|| (outgoing?"debit":"credit")],
    ["Status",String(row.status||"completed").toUpperCase()],
